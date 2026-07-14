@@ -1,0 +1,17 @@
+# Obsidian / 本地
+.obsidian/
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# 图片：只跟踪 web/（WebP）；original/ 原图留本地、不进仓库
+images/**/original/
+
+# WordPress 发布（本地密钥与缓存）
+.env.local
+tools/publish-cache.json
+tools/.publish-template-cache.html
+tools/config.yaml

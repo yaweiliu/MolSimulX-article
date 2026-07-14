@@ -1,0 +1,65 @@
+# 非敏感发布配置（可提交）。账号与密码见项目根 .env.local
+
+publish:
+  default_status: draft
+  wrap_html: true
+  use_kadence_template: true
+  strip_series_tags: true
+  strip_publish_note: true
+  # 站内 .md 互链：仅 wp_post_id 已填的目标才生成可点击链接；其余显示灰色「待发布」
+  guess_unpublished_links: false
+  comment_status: closed   # 关闭评论/讨论区（与 WP 设置「不允许」一致）
+  ping_status: closed
+  assign_wp_tags: false     # 不在文末显示 #标签（topic 仅本地 YAML 用）
+  strip_template_footer: true  # 去掉母版末尾 wp:block 页脚引用
+
+# 三大栏目并列 → WordPress 一级分类（父分类名 = series）
+series_catalog:
+  在线资源:
+    parent: 在线资源
+    children:
+      知识文档: 知识文档
+      技术文档: 技术文档
+      实战案例: 实战案例
+      # 兼容旧 tier / 系列标签
+      00-知识文档: 知识文档
+      01-技术文档: 技术文档
+      02-实战案例: 实战案例
+      实战示例: 实战案例
+      02-实战示例: 实战案例
+      基础示例: 实战案例
+      项目案例: 实战案例
+      02-基础示例: 实战案例
+      03-项目案例: 实战案例
+      04-项目案例: 实战案例
+  在线工具:
+    parent: 在线工具
+    default_child: 使用指南
+  解决方案:
+    parent: 解决方案
+    default_child: 方案
+
+# Kadence「文章设置」——以你在 WP 后台调好的选项为准（发布时写入 post meta）
+# 后台中文名              → meta 键 / 值
+# 透明页眉 · 启用          → _kad_post_transparent: enable
+# 文章标题 · 禁用          → _kad_post_title: hide（标题由 publish.py 在正文注入居中 h1）
+# 文章布局 · 全宽          → _kad_post_layout: fullwidth
+# 内容风格 · 非盒装        → _kad_post_content_style: unboxed
+# 内容垂直间距 · 禁用      → _kad_post_vertical_padding: hide
+# 显示特色图片 · 禁用      → _kad_post_feature: hide
+kadence_meta:
+  _kad_post_transparent: enable
+  _kad_post_title: hide
+  _kad_post_layout: fullwidth
+  _kad_post_content_style: unboxed
+  _kad_post_vertical_padding: hide
+  _kad_post_feature: hide
+  _kad_post_header: false    # 禁用页眉 · 关（false = 不禁用，显示页眉）
+  _kad_post_footer: true     # 禁用页脚 · 开（true = 禁用站点页脚，与后台开关一致）
+
+strip_patterns:
+  - '^> \\*\\*系列标签：\\*\\*.*$'
+  - '^> \\*\\*发布说明：\\*\\*.*$'
+  - '^> ⚠️.*$'
+
+slug_map: {}
