@@ -34,7 +34,15 @@ series_catalog:
       04-项目案例: 实战案例
   在线工具:
     parent: 在线工具
-    default_child: 使用指南
+    # 子分类与仓库 00-MDStudio / 01-DataHub / 02-AILab 及 YAML tier 对齐（WP 已建好）
+    children:
+      MDStudio: MDStudio
+      DataHub: DataHub
+      AILab: AILab
+      00-MDStudio: MDStudio
+      01-DataHub: DataHub
+      02-AILab: AILab
+    default_child: MDStudio
   解决方案:
     parent: 解决方案
     default_child: 方案

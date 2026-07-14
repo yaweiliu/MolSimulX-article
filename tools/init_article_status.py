@@ -12,7 +12,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 
 from article_lookup import FRONT_MATTER_RE, iter_articles, should_skip  # noqa: E402
 
-# 与 内容写作与发布手册.md 编号表一致
+# 与 内容规划.md 编号表一致
 ID_BY_REL: dict[str, dict[str, str]] = {
     # 00-知识（按模拟流程；排除已并入 K03）
     "在线资源/00-知识文档/K01-分子模拟方法概述.md": {"id": "K01", "paywall": "free"},
@@ -80,6 +80,9 @@ TIER_FROM_PATH = {
     "00-知识文档": "知识文档",
     "01-技术文档": "技术文档",
     "02-实战案例": "实战案例",
+    "00-MDStudio": "MDStudio",
+    "01-DataHub": "DataHub",
+    "02-AILab": "AILab",
 }
 
 

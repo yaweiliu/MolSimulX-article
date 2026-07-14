@@ -67,7 +67,7 @@ TEMPLATE_FOOTER_BLOCK_RE = re.compile(
     r"\n<!-- wp:block \{\"ref\":\d+\} /-->\s*$",
 )
 DEFAULT_KADENCE_META: dict[str, Any] = {
-    # 与 WP 后台「文章设置」已调好的一致（见 内容写作与发布手册 · Kadence 文章设置）
+    # 与 WP 后台「文章设置」已调好的一致（见 发布与上线.md · Kadence 文章设置）
     "_kad_post_transparent": "enable",
     "_kad_post_title": "hide",
     "_kad_post_layout": "fullwidth",
@@ -252,6 +252,8 @@ SKIP_MD_NAMES = frozenset({
     "资源导航.md",
     "内容写作与发布手册.md",
     "写作规范.md",
+    "发布与上线.md",
+    "内容规划.md",
     "文章发布指南.md",
     "内部-内容规划.md",
     "机器学习内容规划.md",
@@ -344,7 +346,15 @@ def load_settings() -> dict[str, Any]:
             },
             "在线工具": {
                 "parent": "在线工具",
-                "default_child": "使用指南",
+                "children": {
+                    "MDStudio": "MDStudio",
+                    "DataHub": "DataHub",
+                    "AILab": "AILab",
+                    "00-MDStudio": "MDStudio",
+                    "01-DataHub": "DataHub",
+                    "02-AILab": "AILab",
+                },
+                "default_child": "MDStudio",
             },
             "解决方案": {
                 "parent": "解决方案",
@@ -882,6 +892,53 @@ def get_or_create_category(
     return r.json()["id"]
 
 
+TOOL_TIER_FROM_PATH = (
+    ("00-MDStudio", "MDStudio"),
+    ("01-DataHub", "DataHub"),
+    ("02-AILab", "AILab"),
+    ("MDStudio", "MDStudio"),
+    ("DataHub", "DataHub"),
+    ("AILab", "AILab"),
+)
+
+
+def infer_online_tool_tier(md_path: Path, topic: str | None, series_tags: list[str]) -> str | None:
+    """在线工具子产品：MDStudio / DataHub / AILab。"""
+    rel = str(md_path).replace("\\", "/")
+    for folder, name in TOOL_TIER_FROM_PATH:
+        if f"/{folder}/" in rel or rel.endswith(f"/{folder}"):
+            return name
+    if topic in {"MDStudio", "DataHub", "AILab"}:
+        return str(topic)
+    for tag in series_tags:
+        if tag in {"MDStudio", "DataHub", "AILab"}:
+            return tag
+    return None
+
+
+def _child_tier_key(
+    series: str,
+    tier: str | None,
+    series_tags: list[str],
+    children: dict[str, str],
+    topic: str | None = None,
+) -> str:
+    """Resolve WP subcategory key for a series."""
+    if tier:
+        return str(tier)
+    if series == "在线资源":
+        return series_tags[0] if series_tags else ""
+    if series == "在线工具":
+        # Prefer YAML topic when it is a known product subcategory.
+        if topic and str(topic) in children:
+            return str(topic)
+        for tag in series_tags:
+            if tag in children:
+                return tag
+        return ""
+    return series_tags[0] if series_tags else ""
+
+
 def resolve_categories(
     cfg: dict[str, Any],
     site: str,
@@ -889,6 +946,7 @@ def resolve_categories(
     series: str,
     tier: str | None,
     series_tags: list[str],
+    topic: str | None = None,
 ) -> list[int]:
     catalog = cfg.get("series_catalog", {})
     spec = catalog.get(series, catalog.get("在线资源", {}))
@@ -896,9 +954,14 @@ def resolve_categories(
     parent_id = get_or_create_category(site, sess, parent_name)
 
     children = spec.get("children", {})
-    if series == "在线资源":
-        tier_key = tier or (series_tags[0] if series_tags else "")
-        child_name = children.get(tier_key, cfg.get("category_map", {}).get(tier_key, tier_key or "未分类"))
+    if children:
+        tier_key = _child_tier_key(series, tier, series_tags, children, topic=topic)
+        child_name = children.get(
+            tier_key,
+            cfg.get("category_map", {}).get(tier_key, tier_key or None),
+        )
+        if not child_name:
+            child_name = spec.get("default_child", "未分类")
     else:
         child_name = spec.get("default_child", "未分类")
 
@@ -1171,8 +1234,11 @@ def publish_file(
     slug = str(meta.get("wp_slug") or slug_from_path(md_path))
     content_series = str(meta.get("series") or infer_series(md_path))
     tier = meta.get("tier")
+    topic = meta.get("topic")
     if not tier and content_series == "在线资源":
         tier = series_tags[0] if series_tags else None
+    if not tier and content_series == "在线工具":
+        tier = infer_online_tool_tier(md_path, str(topic) if topic else None, series_tags)
     paywall = normalize_paywall(str(meta.get("paywall") or ""))
     post_status = status_override or cfg["publish"]["default_status"]
 
@@ -1237,7 +1303,9 @@ def publish_file(
         result["html_preview"] = article_html[:600]
         return result
 
-    cat_ids = resolve_categories(cfg, site, sess, content_series, tier, series_tags)
+    cat_ids = resolve_categories(
+        cfg, site, sess, content_series, tier, series_tags, topic=str(topic) if topic else None
+    )
 
     post_meta = dict(kadence_meta)
     post_meta["molsimulx_paywall"] = paywall
