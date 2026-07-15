@@ -225,8 +225,9 @@ apt --version
 
 **下一步：**
 
-- [Linux终端与Shell简明教程](T03-Linux终端与Shell简明教程.md)
 - [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)
+- [LAMMPS安装简明教程](T20-LAMMPS安装简明教程.md) —— 本机装引擎（Mac / Ubuntu / WSL）
+- [Linux终端与Shell简明教程](T03-Linux终端与Shell简明教程.md)
 - [SSH密钥与config配置简明教程](T08-SSH密钥与config配置简明教程.md)
 - [Git简明使用教程](T04-Git简明使用教程.md)
 - [Conda与Mamba简明教程](T05-Conda与Mamba简明教程.md)

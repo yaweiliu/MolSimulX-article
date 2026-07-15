@@ -16,7 +16,7 @@ erphpdown_blocks: 1
 
 本文讲集群是咋回事，并以国内最常见的 **SLURM** 为主（顺带提 **PBS/Torque**）。SSH、传文件、Remote SSH 请先看 [SSH密钥与config配置简明教程](T08-SSH密钥与config配置简明教程.md)、[本地与集群文件传输](T09-本地与集群文件传输.md)、[VSCode与Cursor远程连接集群](T07-VSCode与Cursor远程连接集群.md)；终端命令不熟见 [Linux终端与Shell简明教程](T03-Linux终端与Shell简明教程.md)。
 
-学完能带走：登录节点、计算节点、调度器各干什么，`sbatch` 怎么写、队列怎么查、作业日志去哪找——够你把 LAMMPS 正式交上去而不是在登录节点硬跑一整天。钥匙在 [SSH密钥与config配置简明教程](T08-SSH密钥与config配置简明教程.md)，倒文件在 [本地与集群文件传输](T09-本地与集群文件传输.md)，远程改 in 见 [VSCode与Cursor远程连接集群](T07-VSCode与Cursor远程连接集群.md)；项目目录和 runlog 怎么记，跟 [科研项目目录结构规范](T15-科研项目目录结构规范.md) 一套看。
+学完能带走：登录节点、计算节点、调度器各干什么，`sbatch` 怎么写、队列怎么查、作业日志去哪找——够你把 LAMMPS 正式交上去而不是在登录节点硬跑一整天。本机先冒烟装引擎见 [LAMMPS安装简明教程](T20-LAMMPS安装简明教程.md)；钥匙在 [SSH密钥与config配置简明教程](T08-SSH密钥与config配置简明教程.md)，倒文件在 [本地与集群文件传输](T09-本地与集群文件传输.md)，远程改 in 见 [VSCode与Cursor远程连接集群](T07-VSCode与Cursor远程连接集群.md)；项目目录和 runlog 怎么记，跟 [科研项目目录结构规范](T15-科研项目目录结构规范.md) 一套看。
 
 | 阶段 | 姊妹篇 |
 |------|--------|
@@ -106,7 +106,7 @@ tmux attach -t md              # 回到原来的窗口，tail 还在
 
 ### 1. 用 module 加载 LAMMPS（常见）
 
-很多集群不让你自己装 LAMMPS，而是管理员装好，你用 `module` 切换版本：
+很多集群不让你自己装 LAMMPS，而是管理员装好，你用 `module` 切换版本。本机调试装法见 [LAMMPS安装简明教程](T20-LAMMPS安装简明教程.md)。
 
 ```bash
 module avail              # 看有哪些能 load
