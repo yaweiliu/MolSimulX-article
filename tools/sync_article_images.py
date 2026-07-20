@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-按文章引用整理 images/：定位源图 → 归入 articles/{tier}/{slug}/original/ → 转 web/*.webp → 可选回写 md 路径。
+按文章引用整理 images/：定位源图 → 归入 articles/{tier|系列}/{md文件名}/original/
+→ 转 web/*.webp → 可选回写 md 路径。
+
+目录名与 md 文件名一致（如 M07-MDStudio周期分子），按编号查找；不用 wp_slug 作文件夹名。
 
 用法：
   python tools/sync_article_images.py --id T01 --rewrite-md
@@ -76,7 +79,9 @@ def article_meta(md_path: Path, raw: str) -> dict:
     tier = meta.get("tier")
     if not tier and series == "在线资源":
         tier = parse_series_tier(body)
-    slug = meta.get("wp_slug") or md_path.stem
+    # Folder name = md filename stem (e.g. M07-MDStudio周期分子), easy to find by id.
+    # Do not use wp_slug here — that produced unnumbered duplicate dirs.
+    slug = md_path.stem
     article_id = meta.get("id")
     if not article_id:
         fn_m = FILENAME_ID_RE.match(md_path.stem)

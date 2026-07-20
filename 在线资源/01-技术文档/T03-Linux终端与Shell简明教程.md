@@ -15,7 +15,7 @@ paywall: free
 
 本文介绍 Mac / Linux / WSL 下最常用的终端操作，够你完成 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md) 和后续连集群。Windows 用户请先在 WSL 里练（见 [WSL2安装与配置](T02-WSL2安装与配置.md)），命令和本文完全一致。
 
-![shell](../../images/articles/技术文档/linux终端与shell简明教程/web/T03-hero-shell.webp)
+![shell](../../images/articles/技术文档/T03-Linux终端与Shell简明教程/web/T03-hero-shell.webp)
 
 ---
 
@@ -103,7 +103,7 @@ grep "ERROR" log.txt   # 在文件里搜包含 ERROR 的行
 grep -r "keyword" .    # 在当前目录及子目录里搜
 ```
 
-**小例子：** 在 LAMMPS 日志里找势能行
+**小例子：** 在 Lammps 日志里找势能行
 
 ```bash
 grep "PotEng" log.lammps
@@ -160,7 +160,7 @@ chmod +x script.sh     # 加上可执行权限
 ./script.sh            # 运行当前目录下的脚本
 ```
 
-集群上交 LAMMPS 作业时，`.sh` 脚本也常要先 `chmod +x`，再用 `sbatch` 提交（见 [集群与SLURM简明教程](T10-集群与SLURM简明教程.md)）。
+集群上交 Lammps 作业时，`.sh` 脚本也常要先 `chmod +x`，再用 `sbatch` 提交（见 [集群与SLURM简明教程](T10-集群与SLURM简明教程.md)）。
 
 ---
 

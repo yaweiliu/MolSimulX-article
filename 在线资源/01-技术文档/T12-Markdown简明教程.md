@@ -314,7 +314,7 @@ MolSimulX 平台线里，`.md` 和 `.py` 一样在编辑器里改：
 
 ## 八、科研场景写作习惯
 
-1. **一篇一主题**：如「某次 LAMMPS NPT 参数记录」，别全堆在一个文件里  
+1. **一篇一主题**：如「某次 Lammps NPT 参数记录」，别全堆在一个文件里  
 2. **代码和文档放近**：Notebook 里写参数，或 `.md` 里写脚本路径  
 3. **参数表格化**：温度、步长、力场、随机种子写清楚，半年后还能复现  
 4. **跟 Git 一起走**：`.md` 和 `.ipynb` 同提交  
@@ -359,4 +359,4 @@ MolSimulX 平台线里，`.md` 和 `.py` 一样在编辑器里改：
 
 - [Obsidian知识库搭建](T13-Obsidian知识库搭建.md)
 - [LaTeX与Overleaf简明教程](T14-LaTeX与Overleaf简明教程.md)
-- [NumPy与Matplotlib简明教程](C01-NumPy与Matplotlib简明教程.md) —— 图注可写在 Markdown 单元格
+- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md) —— 图注可写在 Markdown 单元格

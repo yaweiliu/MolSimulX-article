@@ -845,7 +845,13 @@ def md_to_html(md: str, wrap: bool, title: str | None = None) -> str:
     protected, math_chunks = _protect_math_segments(md)
     body_html = markdown.markdown(
         protected,
-        extensions=["tables", "fenced_code", "nl2br", "sane_lists"],
+        extensions=["tables", "fenced_code", "nl2br", "sane_lists", "toc"],
+        extension_configs={
+            "toc": {
+                "permalink": False,
+                "toc_depth": "2-3",
+            }
+        },
         output_format="html5",
     )
     body_html = _restore_math_segments(body_html, math_chunks)

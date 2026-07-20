@@ -12,11 +12,11 @@ erphpdown_blocks: 1
 ---
 > **系列标签：** `技术文档` · `集群` · `HPC` · `SLURM`
 
-学校超算、课题组服务器，算力不是谁抢到谁用——得通过**作业调度系统**排队。你写好脚本、`sbatch` 交上去，调度器在空闲的**计算节点**上帮你跑 LAMMPS；自己别在**登录节点**上硬跑一整天的模拟，轻则慢，重则账号被限。
+学校超算、课题组服务器，算力不是谁抢到谁用——得通过**作业调度系统**排队。你写好脚本、`sbatch` 交上去，调度器在空闲的**计算节点**上帮你跑 Lammps；自己别在**登录节点**上硬跑一整天的模拟，轻则慢，重则账号被限。
 
 本文讲集群是咋回事，并以国内最常见的 **SLURM** 为主（顺带提 **PBS/Torque**）。SSH、传文件、Remote SSH 请先看 [SSH密钥与config配置简明教程](T08-SSH密钥与config配置简明教程.md)、[本地与集群文件传输](T09-本地与集群文件传输.md)、[VSCode与Cursor远程连接集群](T07-VSCode与Cursor远程连接集群.md)；终端命令不熟见 [Linux终端与Shell简明教程](T03-Linux终端与Shell简明教程.md)。
 
-学完能带走：登录节点、计算节点、调度器各干什么，`sbatch` 怎么写、队列怎么查、作业日志去哪找——够你把 LAMMPS 正式交上去而不是在登录节点硬跑一整天。本机先冒烟装引擎见 [LAMMPS安装简明教程](T20-LAMMPS安装简明教程.md)；钥匙在 [SSH密钥与config配置简明教程](T08-SSH密钥与config配置简明教程.md)，倒文件在 [本地与集群文件传输](T09-本地与集群文件传输.md)，远程改 in 见 [VSCode与Cursor远程连接集群](T07-VSCode与Cursor远程连接集群.md)；项目目录和 runlog 怎么记，跟 [科研项目目录结构规范](T15-科研项目目录结构规范.md) 一套看。
+学完能带走：登录节点、计算节点、调度器各干什么，`sbatch` 怎么写、队列怎么查、作业日志去哪找——够你把 Lammps 正式交上去而不是在登录节点硬跑一整天。本机先冒烟装引擎见 [Lammps安装简明教程](T20-Lammps安装简明教程.md)；钥匙在 [SSH密钥与config配置简明教程](T08-SSH密钥与config配置简明教程.md)，倒文件在 [本地与集群文件传输](T09-本地与集群文件传输.md)，远程改 in 见 [VSCode与Cursor远程连接集群](T07-VSCode与Cursor远程连接集群.md)；项目目录和 runlog 怎么记，跟 [科研项目目录结构规范](T15-科研项目目录结构规范.md) 一套看。
 
 | 阶段 | 姊妹篇 |
 |------|--------|
@@ -37,13 +37,13 @@ erphpdown_blocks: 1
 ```
 你的电脑 ──SSH──► 登录节点 ──提交作业──► 调度器 ──分配──► 计算节点
                       │                                      │
-                  传文件、改 in 文件                         跑 LAMMPS / Python
+                  传文件、改 in 文件                         跑 Lammps / Python
                   git、sbatch                                吃 CPU / 内存
 ```
 
 | 角色 | 干什么 | 别干什么 |
 |------|--------|----------|
-| **登录节点** | SSH 上来、编辑、`git`、**`sbatch` 交作业** | 长时间 LAMMPS、大轨迹 Python、占满核的 Jupyter |
+| **登录节点** | SSH 上来、编辑、`git`、**`sbatch` 交作业** | 长时间 Lammps、大轨迹 Python、占满核的 Jupyter |
 | **计算节点** | 模拟、重分析、交互式 Jupyter（要先申请到节点） | — |
 | **调度器** | 排队、分你多少核、多少内存、能跑多久 | — |
 
@@ -82,7 +82,7 @@ scp molcluster:~/project/log.lammps ./data/raw/
 
 | 情况 | SSH 断了之后 |
 |------|-------------|
-| 已 `sbatch` / `qsub` 交出去的 LAMMPS | **还在跑**——调度器接管，关电脑、断 Wi‑Fi 都不影响 |
+| 已 `sbatch` / `qsub` 交出去的 Lammps | **还在跑**——调度器接管，关电脑、断 Wi‑Fi 都不影响 |
 | 登录节点**前台**命令：`tail -f`、`mamba install`、正在等的交互 `srun` | **通常会停**——进程绑在你的 SSH 会话上 |
 
 **规矩很简单：** 真正算力走 **`sbatch`**；需要长时间占着终端（盯日志、试命令、交互进计算节点）时，先开 **`tmux`** 或 **`screen`**：
@@ -102,11 +102,11 @@ tmux attach -t md              # 回到原来的窗口，tail 还在
 
 ---
 
-## 三、集群上的环境（LAMMPS + Python）
+## 三、集群上的环境（Lammps + Python）
 
-### 1. 用 module 加载 LAMMPS（常见）
+### 1. 用 module 加载 Lammps（常见）
 
-很多集群不让你自己装 LAMMPS，而是管理员装好，你用 `module` 切换版本。本机调试装法见 [LAMMPS安装简明教程](T20-LAMMPS安装简明教程.md)。
+很多集群不让你自己装 Lammps，而是管理员装好，你用 `module` 切换版本。本机调试装法见 [Lammps安装简明教程](T20-Lammps安装简明教程.md)。
 
 ```bash
 module avail              # 看有哪些能 load
@@ -145,7 +145,7 @@ conda activate myenv
 
 历史记录用 `sacct`（查以前跑过啥、用了多久）。
 
-### 1. 批处理脚本示例（LAMMPS）
+### 1. 批处理脚本示例（Lammps）
 
 把资源需求写在脚本开头的 `#SBATCH` 行里，下面才是实际要跑的命令。保存为 `job.slurm`：
 
@@ -295,12 +295,12 @@ which qsub      # 有输出 → PBS 系
 ```
 本地：写 in、管 Git、建模
     ↓ rsync / git pull（本地与集群文件传输）
-集群：sbatch 跑 LAMMPS
+集群：sbatch 跑 Lammps
     ↓ rsync 拉回轨迹，或在计算节点分析
 本地 / Jupyter：MDAnalysis 画图（NumPy与Matplotlib简明教程）
 ```
 
-环境见 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)；画图见 [NumPy与Matplotlib简明教程](C01-NumPy与Matplotlib简明教程.md)。
+环境见 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)；画图见 [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md)。
 
 ---
 
@@ -355,5 +355,5 @@ which qsub      # 有输出 → PBS 系
 **下一步：**
 
 - [本地与集群文件传输](T09-本地与集群文件传输.md) —— 轨迹怎么来回搬
-- [NumPy与Matplotlib简明教程](C01-NumPy与Matplotlib简明教程.md) —— 分析跑完的数据
+- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md) —— 分析跑完的数据
 - `02-实战案例` 目录下的端到端案例（陆续更新）

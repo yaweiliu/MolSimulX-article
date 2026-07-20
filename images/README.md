@@ -11,8 +11,13 @@ images/
 │   ├── brand/original|web/
 │   └── home/original|web/
 └── articles/                 # 教程配图（脚本自动生成）
-    └── {层级}/{文章slug}/original|web/
+    └── {层级}/{文章编号-标题}/original|web/
+        # 例：在线工具/M07-MDStudio周期分子/
+        #     技术文档/T01-分子模拟工作平台搭建/
+        #     知识文档/K01-分子模拟方法概述/
 ```
+
+目录名与 md 文件名一致（含 `M07` / `T01` / `K01` 编号），便于查找；**不用** `wp_slug` 作文件夹名。
 
 ## 命名
 

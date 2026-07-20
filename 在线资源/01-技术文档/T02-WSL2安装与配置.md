@@ -17,7 +17,7 @@ paywall: free
 
 本文讲 WSL 2 怎么装、项目放哪、怎么和 VSCode / Cursor 连上。**Windows 用户**按文操作即可；Mac / 实体机 Ubuntu 用户请改看 [Mac与Ubuntu开发环境配置](T19-Mac与Ubuntu开发环境配置.md)，再回到 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)。
 
-![wsl2](../../images/articles/技术文档/wsl2安装与配置/web/T02-hero-wsl2.webp)
+![wsl2](../../images/articles/技术文档/T02-WSL2安装与配置/web/T02-hero-wsl2.webp)
 
 ---
 
@@ -164,9 +164,9 @@ source ~/.bashrc
 3. 或者按 `Ctrl + Shift + P` 打开**命令面板**，输入 **`WSL: Connect to WSL`** 并选择  
 4. **File → Open Folder** → 选 `~/projects/你的项目`
 
-![launch_wsl_vscode](../../images/articles/技术文档/wsl2安装与配置/web/T02-fig-launch_wsl_vscode.webp)
+![launch_wsl_vscode](../../images/articles/技术文档/T02-WSL2安装与配置/web/T02-fig-launch_wsl_vscode.webp)
 
-![wsl-vscode](../../images/articles/技术文档/wsl2安装与配置/web/T02-fig-wsl-vscode.webp)
+![wsl-vscode](../../images/articles/技术文档/T02-WSL2安装与配置/web/T02-fig-wsl-vscode.webp)
 
 > 左下角显示 **WSL: Ubuntu** 就说明连上了。这时终端、Python、Git 用的都是 **Linux 里装的那套**，不是 Windows 自带的。
 

@@ -11,7 +11,7 @@ paywall: free
 ---
 > **系列标签：** `技术文档` · `VSCode` · `Cursor` · `编辑器`
 
-做分子模拟，脚本、Notebook、LAMMPS 输入文件总要有个地方写。**VSCode**（Visual Studio Code）是微软出品的免费编辑器，轻量、插件多，科研圈用得最广。**Cursor** 在 VSCode 基础上加了 AI 辅助写代码，界面和快捷键几乎一样，扩展也大多通用。
+做分子模拟，脚本、Notebook、Lammps 输入文件总要有个地方写。**VSCode**（Visual Studio Code）是微软出品的免费编辑器，轻量、插件多，科研圈用得最广。**Cursor** 在 VSCode 基础上加了 AI 辅助写代码，界面和快捷键几乎一样，扩展也大多通用。
 
 本文介绍 VSCode / Cursor 的安装、界面、常用扩展，以及与 Conda、Jupyter、Git 的配合。Mac、Ubuntu、Windows（WSL）均可按文中步骤操作。各专题细节见 [Git简明使用教程](T04-Git简明使用教程.md)、[Conda与Mamba简明教程](T05-Conda与Mamba简明教程.md)、[JupyterLab简明教程](T11-JupyterLab简明教程.md)，完整平台见 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)。
 
@@ -82,7 +82,7 @@ cursor .    # Cursor
 |:----:|------|----------|------------------|
 | **①** | **活动栏**（最左竖条） | 功能切换菜单 | 点 📁 看文件、点 Git 看改动、点 🧩 装扩展 |
 | **②** | **侧栏** | 当前功能的详情面板 | 浏览项目目录、搜索代码、管理扩展 |
-| **③** | **编辑区** | 写代码的「主桌面」 | 改 `.py`、`.ipynb`、LAMMPS 输入、Markdown 笔记 |
+| **③** | **编辑区** | 写代码的「主桌面」 | 改 `.py`、`.ipynb`、Lammps 输入、Markdown 笔记 |
 | **④** | **面板**（底部） | 终端和报错列表 | `conda activate myenv`、`python script.py`、看报错 |
 | **⑤** | **状态栏**（最底一条） | 当前状态速览 | 看 Git 分支、**Python 环境是不是 myenv**、行号编码 |
 
@@ -273,7 +273,7 @@ jupyter lab
 **科研场景示例：**
 
 - 「把这个 Notebook 里的轨迹读取改成 MDAnalysis」  
-- 「给这个 LAMMPS 后处理脚本加上 RMSD 计算」  
+- 「给这个 Lammps 后处理脚本加上 RMSD 计算」  
 
 **注意：**
 
@@ -441,4 +441,4 @@ python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
 - [JupyterLab简明教程](T11-JupyterLab简明教程.md)
 - [VSCode与Cursor远程连接集群](T07-VSCode与Cursor远程连接集群.md)
 - [集群与SLURM简明教程](T10-集群与SLURM简明教程.md)
-- [NumPy与Matplotlib简明教程](C01-NumPy与Matplotlib简明教程.md)
+- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md)

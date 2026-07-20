@@ -67,12 +67,12 @@ ID_BY_REL: dict[str, dict[str, str]] = {
     "在线资源/01-技术文档/T18-从模拟到论文图的工作流.md": {"id": "T18", "paywall": "none"},
     "在线资源/01-技术文档/T29-Docker与Apptainer入门.md": {"id": "T29", "paywall": "none"},
     "在线资源/01-技术文档/T30-机器学习与分子模拟导引.md": {"id": "T30", "paywall": "none"},
-    # 02-实战案例
-    "在线资源/02-实战案例/C01-NumPy与Matplotlib简明教程.md": {"id": "C01", "paywall": "none"},
-    "在线资源/02-实战案例/C02-MDAnalysis轨迹分析入门.md": {"id": "C02", "paywall": "vip-partial"},
-    "在线资源/02-实战案例/C03-ASE结构构建入门.md": {"id": "C03", "paywall": "vip-partial"},
-    "在线资源/02-实战案例/C04-scikit-learn简明教程.md": {"id": "C04", "paywall": "vip-partial"},
-    "在线资源/02-实战案例/C05-PyTorch简明教程.md": {"id": "C05", "paywall": "vip-partial"},
+    # 01-技术 · 工具速成 T21–T25（原 C01–C05，已从实战案例迁入）
+    "在线资源/01-技术文档/T21-NumPy与Matplotlib简明教程.md": {"id": "T21", "paywall": "none"},
+    "在线资源/01-技术文档/T22-MDAnalysis轨迹分析入门.md": {"id": "T22", "paywall": "vip-partial"},
+    "在线资源/01-技术文档/T23-ASE结构构建入门.md": {"id": "T23", "paywall": "vip-partial"},
+    "在线资源/01-技术文档/T24-scikit-learn简明教程.md": {"id": "T24", "paywall": "vip-partial"},
+    "在线资源/01-技术文档/T25-PyTorch简明教程.md": {"id": "T25", "paywall": "vip-partial"},
 }
 
 SERIES_TAG_RE = re.compile(r"系列标签：\*\*\s*`([^`]+)`\s*·\s*`([^`]+)`")

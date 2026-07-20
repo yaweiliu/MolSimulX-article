@@ -15,7 +15,7 @@ paywall: free
 
 学完能带走：确认本机已有 Git、完成姓名邮箱等基本配置，以及 `clone` / `commit` / `push` / `pull` 的日常协作套路。**新 Mac / Ubuntu 请先装好开发底座**（Command Line Tools、Homebrew 或 `apt` 基础包），见 [Mac与Ubuntu开发环境配置](T19-Mac与Ubuntu开发环境配置.md)，本文第二节只写「怎么确认 / 补装 Git」，不重复整段地基教程。项目目录怎么摆见 [科研项目目录结构规范](T15-科研项目目录结构规范.md)；几 GB 轨迹别硬 `git push`，分层规矩见 [数据管理与备份](T17-数据管理与备份.md)。Mac、Ubuntu、Windows 均可按文中步骤操作。
 
-![git](../../images/articles/技术文档/git简明使用教程/web/T04-hero-git.webp)
+![git](../../images/articles/技术文档/T04-Git简明使用教程/web/T04-hero-git.webp)
 
 ---
 
@@ -319,7 +319,7 @@ git add .                         # 添加所有改动
 git commit -m "简短说明本次修改"   # 提交到本地仓库
 ```
 
-提交说明要**简短、说清楚做了什么**，例如：`fix: 修正轨迹分析脚本的单位换算`、`add: 新增 LAMMPS 输入文件模板`。
+提交说明要**简短、说清楚做了什么**，例如：`fix: 修正轨迹分析脚本的单位换算`、`add: 新增 Lammps 输入文件模板`。
 
 ### 3. Push —— 上传到远程
 
@@ -539,7 +539,7 @@ git config --global --list               # 总览全局项
   - Mac：`Control + Shift + G`
   - Windows / Linux：`Ctrl + Shift + G`
 
-![git-vscode](../../images/articles/技术文档/git简明使用教程/web/T04-fig-git-vscode.webp)
+![git-vscode](../../images/articles/技术文档/T04-Git简明使用教程/web/T04-fig-git-vscode.webp)
 
 #### 常用图形化操作
 

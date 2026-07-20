@@ -24,7 +24,7 @@ erphpdown_blocks: 1
 | Notebook 怎么写才可复现 | [Jupyter Notebook科研使用规范](T16-Jupyter Notebook科研使用规范.md) |
 | 论文排版、参考文献 | [LaTeX与Overleaf简明教程](T14-LaTeX与Overleaf简明教程.md) |
 
-![obsidian](../../images/articles/技术文档/obsidian知识库搭建/web/T13-hero-obsidian.webp)
+![obsidian](../../images/articles/技术文档/T13-Obsidian知识库搭建/web/T13-hero-obsidian.webp)
 
 ---
 
