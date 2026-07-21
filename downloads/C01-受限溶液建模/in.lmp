@@ -1,0 +1,75 @@
+# created by msxbox
+
+variable myrand    equal 58938
+variable mytemp    equal 300.0
+variable mypress   equal 1.0
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+
+special_bonds lj 0.0 0.0 0.5 coul 0.0 0.0 0.8333
+pair_style lj/cut/coul/long 12 12
+pair_modify mix arithmetic shift yes
+
+kspace_style pppm 1.0e-5
+
+read_data data.lmp
+
+pair_coeff    1    1     0.105000     3.430851  # C_3
+pair_coeff    2    2     0.000000     1.000000  # Hw
+pair_coeff    3    3     0.155300     3.166000  # Ow
+
+# 能量最小化
+minimize 0.0 1.0e-8 1000 100000
+reset_timestep 0
+fix myshake all shake 0.0001 20 0 b 1
+
+neighbor 2.0 bin
+neigh_modify delay 0 every 1 check yes
+
+timestep 1.0
+
+# 初始速度初始化
+velocity all create ${mytemp} ${myrand} dist gaussian mom yes rot yes
+
+thermo_style custom step temp press lx ly lz density
+thermo_modify flush yes
+thermo 1000
+
+
+write_data result_atoms.data nofix
+# 轨迹输出
+# 文本轨迹 custom（50000 步）
+dump mydump all custom 50000 result_atoms.lammpstrj id type xsu ysu zsu
+# 二进制轨迹 DCD（10000 步）
+dump mydcd all dcd 10000 result_atoms.dcd
+dump_modify mydcd unwrap yes
+
+restart 5000000 restart*.lmp
+
+# ================= 弛豫与生产阶段 =================
+
+# 1. NVE 弛豫 (快速释放局部应力)
+fix mynve all nve
+run 1000
+unfix mynve
+
+# 2. NVT 弛豫 (【优化】延长至 100,000 步以确保结构温度完全均匀)
+fix mynvt all nvt temp ${mytemp} ${mytemp} 100
+run 100000
+unfix mynvt
+
+# 3. NPT 生产与轨迹收集阶段
+fix mynpt all npt temp ${mytemp} ${mytemp} 100 iso ${mypress} ${mypress} 1000
+run 1000000
+
+# 模拟结束后，显式关闭所有 dump 进程
+undump mydcd
+undump mydump
+
+# 输出最终平衡并运行完毕的拓扑与坐标数据
+write_data result_atoms.eq.data nofix

@@ -1,0 +1,249 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-178-gc4fe7a5bcf)
+# =============================================================================
+# 两板间液体：上板机械控压（恒力）+ 流体 NVT
+# -----------------------------------------------------------------------------
+# 体系约定（与 data.lmp / Packmol 一致）：
+#   molecule 1 = 上板（upper）  molecule 2 = 下板（lower）
+#   type 1 = 墙碳 C    type 2 = 水 H (Hw)    type 3 = 水 O (Ow)
+# 控压思路：对上板施加沿 −z 的恒力 F = −P·A，等效目标压力 mypress；
+#           下板不积分 → 位置固定；流体用 NVT。
+# 日志：保持 LAMMPS 默认 log.lammps；热力学列由下方 thermo_style 写入。
+# =============================================================================
+
+# ----- 可调参数 -----
+variable        myrand          equal   49303           # 速度初始化随机种子
+variable        mytemp          equal   300.0           # 流体目标温度 [K]
+variable        mypress         equal   1.0             # 上板目标压力 [atm]
+
+# ----- 基本设置 -----
+units           real
+boundary        p p p                                   # x/y/z 均周期；z 向靠两板夹持
+
+atom_style      full
+bond_style      harmonic
+angle_style     harmonic
+special_bonds   amber                                   # 1-2/1-3/1-4 权重与 AMBER/GAFF 一致
+
+pair_style      lj/cut/coul/long  10.0  10.0             # LJ + 截断库仑；无长程 kspace
+pair_modify     mix arithmetic  shift yes
+kspace_style    pppm  1.0e-4                            # 若改用长程静电势，取消注释并调整 pair_style
+
+read_data       data.lmp
+Reading data file ...
+  orthogonal box = (-16.8291 -16.6565 -50) to (16.8291 16.6565 50)
+  1 by 1 by 4 MPI processor grid
+  reading atoms ...
+  7792 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (-16.8291 -16.6565 -50) to (16.8291 16.6565 50)
+  1 by 1 by 4 MPI processor grid
+  reading bonds ...
+  4000 bonds
+  reading angles ...
+  2000 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0.5     
+  special bond factors coul:  0        0        0.8333333333333334
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.031 seconds
+
+# LJ 参数：ε [kcal/mol]，σ [Å]（同种；异种由 arithmetic 混合）
+pair_coeff      1  1    0.105000    3.430851            # C（墙）
+pair_coeff      2  2    0.000000    1.000000            # Hw（SPC/E 氢，ε=0）
+pair_coeff      3  3    0.155300    3.166000            # Ow（SPC/E 氧）
+
+neighbor        2.0  bin
+neigh_modify    delay 0  every 1  check yes
+
+timestep        1.0                                     # [fs]，units real
+
+# ----- 分组 -----
+group           upper   molecule  1                     # 上板
+896 atoms in group upper
+group           lower   molecule  2                     # 下板（本脚本不积分 → 固定）
+896 atoms in group lower
+group           wall    molecule  1 2                   # 上下板合计
+1792 atoms in group wall
+group           fluid   type      2 3                   # 水（H + O）
+6000 atoms in group fluid
+
+# ----- 能量最小化（墙先冻住，避免板被推散）-----
+fix             freeze  wall  setforce  0 0 0
+minimize        0.0  1.0e-8  1000  100000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.25778895
+  grid = 18 18 40
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.028150267
+  estimated relative force accuracy = 8.4773694e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 9375 3240
+Generated 3 of 3 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 6 6 17
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.97 | 11.26 | 12.33 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0              246278.2       4.3101914e-07  246278.2       655403.3     
+      1000   0              215944.3       2385.8772      218330.18      647580.47    
+Loop time of 15.314 on 4 procs for 1000 steps with 7792 atoms
+
+97.4% CPU use with 4 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+      246278.195584744   218330.815415947   218330.177503487
+  Force two-norm initial, final = 1203.4276 28.722981
+  Force max component initial, final = 57.939007 6.1663556
+  Final line search alpha, max atom move = 0.015423155 0.095104659
+  Iterations, force evaluations = 1000 1912
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.4092     | 9.2737     | 12.994     | 112.4 | 60.56
+Bond    | 0.010446   | 0.02687    | 0.044453   |   9.3 |  0.18
+Kspace  | 1.7421     | 5.482      | 10.364     | 147.0 | 35.80
+Neigh   | 0.34494    | 0.34508    | 0.34523    |   0.0 |  2.25
+Comm    | 0.10163    | 0.1115     | 0.12022    |   2.3 |  0.73
+Output  | 1.4292e-05 | 1.7115e-05 | 2.5417e-05 |   0.0 |  0.00
+Modify  | 0.0018244  | 0.0031856  | 0.0045907  |   2.3 |  0.02
+Other   |            | 0.07164    |            |       |  0.47
+
+Nlocal:           1948 ave        2385 max        1418 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Nghost:         8671.5 ave        9621 max        7802 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+Neighs:         536117 ave      757647 max      231834 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 2144468
+Ave neighs/atom = 275.21407
+Ave special neighs/atom = 1.5400411
+Neighbor list builds = 33
+Dangerous builds = 0
+unfix           freeze
+reset_timestep  0
+
+# ----- 上板质心 z、流体温度（供 thermo / 控压监控）-----
+variable        upper_cmz       equal   xcm(upper,z)
+
+compute         fluid_temp  fluid  temp
+variable        fluid_temp  equal  c_fluid_temp
+
+# SPC/E：约束 O–H 键（bond type 1）；按 data.lmp 中实际 bond type 核对
+fix             myshake  all  shake  0.0001  20  0  b  1
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+    2000 = # of size 3 clusters
+       0 = # of size 4 clusters
+       0 = # of frozen angles
+  find clusters CPU = 0.001 seconds
+
+# =============================================================================
+# 上板机械控压：F_z = −P · A
+#   convert 把 [atm]·[Å²] 换成 LAMMPS real 力单位 [kcal/(mol·Å)]
+#   count(upper) 把总力均分到上板各原子（aveforce）
+#   setforce 0 0 NULL：x/y 锁死，z 由 aveforce + nve 运动
+# =============================================================================
+velocity        upper  set  0 0 0  units box            # 上板初速度清零
+
+variable        atm2Pa          equal   101325.0
+variable        A2m             equal   1.0e-10
+variable        Na              equal   6.022e23
+variable        convert         equal   ${atm2Pa}*${A2m}*${A2m}*${A2m}*${Na}/4.184/1000
+variable        convert         equal   101325*${A2m}*${A2m}*${A2m}*${Na}/4.184/1000
+variable        convert         equal   101325*1e-10*${A2m}*${A2m}*${Na}/4.184/1000
+variable        convert         equal   101325*1e-10*1e-10*${A2m}*${Na}/4.184/1000
+variable        convert         equal   101325*1e-10*1e-10*1e-10*${Na}/4.184/1000
+variable        convert         equal   101325*1e-10*1e-10*1e-10*6.022e+23/4.184/1000
+variable        force           equal   -${mypress}*${convert}*lx*ly/count(upper)
+variable        force           equal   -1*${convert}*lx*ly/count(upper)
+variable        force           equal   -1*1.45836316921606e-05*lx*ly/count(upper)
+
+fix             aveforce    upper  aveforce  0 0 ${force}
+fix             aveforce    upper  aveforce  0 0 -1.82499765014072e-05
+fix             setforce    upper  setforce  0 0 NULL
+fix             upper_nve   upper  nve
+
+# ----- 流体恒温；下板无 time-integration → 保持最小化后坐标 -----
+fix             mynvt  fluid  nvt  temp  ${mytemp}  ${mytemp}  1000
+fix             mynvt  fluid  nvt  temp  300  ${mytemp}  1000
+fix             mynvt  fluid  nvt  temp  300  300  1000
+fix_modify      mynvt  temp  fluid_temp
+WARNING: Temperature for fix modify is not for group all (src/fix_nh.cpp:1546)
+
+
+# 热力学输出写入默认 log.lammps（及屏幕）；列与原先监控量对齐
+thermo_style    custom  step  time  v_fluid_temp  atoms                          pxx  pyy  pzz  lx  ly  lz  v_upper_cmz
+thermo_modify   flush yes
+thermo          2000
+
+# ----- 平衡前给流体赋 Maxwell 速度 -----
+velocity        fluid  create  ${mytemp}  ${myrand}  mom yes  rot yes
+velocity        fluid  create  300  ${myrand}  mom yes  rot yes
+velocity        fluid  create  300  49303  mom yes  rot yes
+
+write_data      result_atoms.data  nofix
+System init for write_data ...
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.25778895
+  grid = 18 18 40
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.028150267
+  estimated relative force accuracy = 8.4773694e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 9375 3240
+Generated 3 of 3 mixed pair_coeff terms from arithmetic mixing rule
+dump            mydump  all  custom  200000  result_atoms.lammpstrj  id type xsu ysu zsu
+
+# ----- 沿 z 的局部应力 / 数密度剖面（chunk + ave/chunk）-----
+compute         mystress  all  stress/atom  NULL
+compute         mybins    all  chunk/atom  bin/1d  z  center  0.1  units box  discard yes
+fix             stress_profile  all  ave/chunk  1000  100  100000  mybins                  c_mystress[1]  c_mystress[2]  c_mystress[3]  density/number                  norm all  ave running  overwrite  file result_profile_stress.log
+
+# ----- 生产段：2e6 步 × 1 fs ≈ 2 ns -----
+run             2000000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.25778895
+  grid = 18 18 40
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.028150267
+  estimated relative force accuracy = 8.4773694e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 9375 3240
+Generated 3 of 3 mixed pair_coeff terms from arithmetic mixing rule
+Per MPI rank memory allocation (min/avg/max) = 13.4 | 14.72 | 15.65 Mbytes
+   Step          Time       v_fluid_temp     Atoms         Pxx            Pyy            Pzz             Lx             Ly             Lz        v_upper_cmz  
+         0   0              300                 7792   695311.04      695287.62      556182.17      33.6582        33.313         100            40           
+      2000   2000           161.59495           7792   693705.28      693352.04      555770.74      33.6582        33.313         100            39.528831    
+      4000   4000           213.43506           7792   693893.67      693898.94      556648.45      33.6582        33.313         100            38.309028    
+      6000   6000           258.69911           7792   694186.97      694188.53      556848.96      33.6582        33.313         100            36.826764    
+      8000   8000           293.68675           7792   694221.78      694258.22      556892.07      33.6582        33.313         100            35.292929    
+     10000   10000          309.32293           7792   695118.71      694972.6       556913.19      33.6582        33.313         100            33.741884    
+     12000   12000          299.05256           7792   694819.74      695183.94      557198.35      33.6582        33.313         100            32.185773    
+     14000   14000          288.29113           7792   694700.05      694355.93      556461.83      33.6582        33.313         100            30.626777    
+     16000   16000          298.29247           7792   694707.23      694502.5       556632.28      33.6582        33.313         100            29.047692    
+     18000   18000          300.98908           7792   693819.99      693987.05      555856.3       33.6582        33.313         100            27.10391     
+     20000   20000          302.62727           7792   693845.28      694128.16      556266.4       33.6582        33.313         100            24.454966    
+     22000   22000          295.33706           7792   694350.2       694359.24      556496.09      33.6582        33.313         100            23.155742    

@@ -1,0 +1,24 @@
+tolerance 2.5
+seed -1
+filetype xyz
+output simbox.xyz
+
+# 上板：固定在 z = +40，姿态不旋转
+structure wall_ff_pack.xyz
+  number 1
+  center
+  fixed 0. 0. 40 0 0 0
+end structure
+
+# 下板：固定在 z = -40
+structure  wall_ff_pack.xyz
+  number 1
+  center
+  fixed 0. 0. -40 0 0 0
+end structure
+
+# 溶液（本例：水）：只在两板之间随机填
+structure spce_pack.xyz
+  number 2000
+  inside box -15.0 -15.0 -40.0 15.0 15.0 40.0
+end structure

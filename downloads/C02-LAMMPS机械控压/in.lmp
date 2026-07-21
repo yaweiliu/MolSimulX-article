@@ -1,0 +1,105 @@
+# =============================================================================
+# 两板间液体：上板机械控压（恒力）+ 流体 NVT
+# -----------------------------------------------------------------------------
+# 体系约定（与 data.lmp / Packmol 一致）：
+#   molecule 1 = 上板（upper）  molecule 2 = 下板（lower）
+#   type 1 = 墙碳 C    type 2 = 水 H (Hw)    type 3 = 水 O (Ow)
+# 控压思路：对上板施加沿 −z 的恒力 F = −P·A，等效目标压力 mypress；
+#           下板不积分 → 位置固定；流体用 NVT。
+# =============================================================================
+
+# ----- 可调参数 -----
+variable        myrand          equal   49303           # 速度初始化随机种子
+variable        mytemp          equal   300.0           # 流体目标温度 [K]
+variable        mypress         equal   1.0             # 上板目标压力 [atm]
+
+# ----- 基本设置 -----
+units           real
+boundary        p p p                                   # x/y/z 均周期；z 向靠两板夹持
+
+atom_style      full
+bond_style      harmonic
+angle_style     harmonic
+special_bonds   amber                                   # 1-2/1-3/1-4 权重与 AMBER/GAFF 一致
+
+pair_style      lj/cut/coul/long  10.0  10.0             # LJ + 截断库仑；无长程 kspace
+pair_modify     mix arithmetic  shift yes
+kspace_style    pppm  1.0e-4                            # 若改用长程静电势，取消注释并调整 pair_style
+
+read_data       data.lmp
+
+# LJ 参数：ε [kcal/mol]，σ [Å]（同种；异种由 arithmetic 混合）
+pair_coeff      1  1    0.105000    3.430851            # C（墙）
+pair_coeff      2  2    0.000000    1.000000            # Hw（SPC/E 氢，ε=0）
+pair_coeff      3  3    0.155300    3.166000            # Ow（SPC/E 氧）
+
+neighbor        2.0  bin
+neigh_modify    delay 0  every 1  check yes
+
+timestep        1.0                                     # [fs]，units real
+
+# ----- 分组 -----
+group           upper   molecule  1                     # 上板
+group           lower   molecule  2                     # 下板（本脚本不积分 → 固定）
+group           wall    molecule  1 2                   # 上下板合计
+group           fluid   type      2 3                   # 水（H + O）
+
+# ----- 能量最小化（墙先冻住，避免板被推散）-----
+fix             freeze  wall  setforce  0 0 0
+minimize        0.0  1.0e-8  1000  100000
+unfix           freeze
+reset_timestep  0
+
+# ----- 上板质心 z、流体温度（供 thermo / 控压监控）-----
+variable        upper_cmz       equal   xcm(upper,z)
+
+compute         fluid_temp  fluid  temp
+variable        fluid_temp  equal  c_fluid_temp
+
+# SPC/E：约束 O–H 键（bond type 1）；按 data.lmp 中实际 bond type 核对
+fix             myshake  all  shake  0.0001  20  0  b  1
+
+# =============================================================================
+# 上板机械控压：F_z = −P · A
+#   convert 把 [atm]·[Å²] 换成 LAMMPS real 力单位 [kcal/(mol·Å)]
+#   count(upper) 把总力均分到上板各原子（aveforce）
+#   setforce 0 0 NULL：x/y 锁死，z 由 aveforce + nve 运动
+# =============================================================================
+velocity        upper  set  0 0 0  units box            # 上板初速度清零
+
+variable        atm2Pa          equal   101325.0
+variable        A2m             equal   1.0e-10
+variable        Na              equal   6.022e23
+variable        convert         equal   ${atm2Pa}*${A2m}*${A2m}*${A2m}*${Na}/4.184/1000
+variable        force           equal   -${mypress}*${convert}*lx*ly/count(upper)
+
+fix             aveforce    upper  aveforce  0 0 ${force}
+fix             setforce    upper  setforce  0 0 NULL
+fix             upper_nve   upper  nve
+
+# ----- 流体恒温；下板无 time-integration → 保持最小化后坐标 -----
+fix             mynvt  fluid  nvt  temp  ${mytemp}  ${mytemp}  1000
+fix_modify      mynvt  temp  fluid_temp
+
+
+# 热力学输出写入默认 log.lammps（及屏幕）；列与原先监控量对齐
+thermo_style    custom  step  time  v_fluid_temp  atoms  &
+                        pxx  pyy  pzz  lx  ly  lz  v_upper_cmz
+thermo_modify   flush yes
+thermo          2000
+
+# ----- 平衡前给流体赋 Maxwell 速度 -----
+velocity        fluid  create  ${mytemp}  ${myrand}  mom yes  rot yes
+
+write_data      result_atoms.data  nofix
+dump            mydump  all  custom  200000  result_atoms.lammpstrj  id type xsu ysu zsu
+
+# ----- 沿 z 的局部应力 / 数密度剖面（chunk + ave/chunk）-----
+compute         mystress  all  stress/atom  NULL
+compute         mybins    all  chunk/atom  bin/1d  z  center  0.1  units box  discard yes
+fix             stress_profile  all  ave/chunk  1000  100  100000  mybins  &
+                c_mystress[1]  c_mystress[2]  c_mystress[3]  density/number  &
+                norm all  ave running  overwrite  file result_profile_stress.log
+
+# ----- 生产段：2e6 步 × 1 fs ≈ 2 ns -----
+run             2000000
