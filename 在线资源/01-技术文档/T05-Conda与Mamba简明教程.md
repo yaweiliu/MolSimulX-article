@@ -13,7 +13,9 @@ paywall: free
 
 在 Python 科研里，项目 A 要 NumPy 1.x，项目 B 要 NumPy 2.x——全塞进系统自带的 Python，很容易「装一个坏一个」。**Conda** 和 **Mamba** 就是帮你给每个项目单独隔一间 **「Python 小房间」**（虚拟环境），互不打架。
 
-本文讲 Conda / Mamba 怎么装、怎么建环境、怎么装包。分子模拟的一键环境 `myenv` 见 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)；本文侧重**日常环境管理**本身。
+本文讲 Conda / Mamba 怎么装、怎么建环境、怎么装包。分子模拟的一键环境 `myenv` 见 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)（该文**统一用 `conda`**）；本文侧重**日常环境管理**本身。
+
+> **Mac 注意：** 部分 **Mac（尤其 Apple Silicon）** 上 Mamba / micromamba 与 conda-forge 组合偶发求解失败、环境损坏或和系统库冲突。**本站在 Mac 上推荐只用 `conda`**，不必再装 Mamba。Linux / 集群上若你更熟 Mamba，仍可按下文把 `conda` 换成 `mamba`（语法大多相同）。
 
 ![conda_mamba](../../images/articles/技术文档/T05-Conda与Mamba简明教程/web/T05-hero-conda_mamba.webp)
 
@@ -39,22 +41,24 @@ paywall: free
 
 ## 二、Conda 与 Mamba 是什么关系？
 
-可以这么记：**Conda 是管家，Mamba 是同一个管家的「快跑模式」**——命令几乎一样，但创建环境、装包时 Mamba 快很多。
+可以这么记：**Conda 是管家，Mamba 是同一个管家的「快跑模式」**——命令几乎一样，但创建环境、装包时 Mamba 往往更快。
 
 | 工具 | 含义 |
 |------|----------|
-| **Conda** | 包与环境管理器，功能全；解析依赖时偶尔较慢 |
-| **Mamba** | Conda 的加速版，**命令与 Conda 兼容**，日常装包首选 |
+| **Conda** | 包与环境管理器，功能全；解析依赖时偶尔较慢；**Mac 上本站首选** |
+| **Mamba** | Conda 的加速版，**命令与 Conda 兼容**；**Linux / 集群可用，Mac 不推荐** |
 | **Miniconda** | 精简版安装器（不带一大堆预装包），**日常推荐** |
 | **Miniforge** | 类似 Miniconda，默认走 `conda-forge` 源，开源社区常用 |
-| **pip** | Python 官方装包工具；Conda 环境里也能用，但**优先 mamba install** |
+| **pip** | Python 官方装包工具；Conda 环境里也能用，但优先用 conda/mamba 装能装到的包 |
 
-**推荐组合：Miniconda（或 Miniforge）+ Mamba**
+**推荐组合（按平台）：**
 
-- 用 **mamba** 创建环境、安装包（快）
-- 用 **conda** 激活 / 退出环境（`conda activate` 是标准写法）
+| 平台 | 推荐 |
+|------|------|
+| **Mac** | **Miniconda + 只用 `conda`**（创建 / 装包 / 导出都用 conda；**不要**为了加速再装 Mamba） |
+| **Ubuntu / Linux / WSL / 集群** | Miniconda（或 Miniforge）；可用 Mamba 加速，或全程 `conda` |
 
-后文命令以 `mamba` 为例；若未安装 Mamba，把 `mamba` 换成 `conda` 即可，语法相同。
+后文示例命令以 `mamba` 写出（Linux 上更快）；**在 Mac 上请一律改成 `conda`**（例如 `mamba install` → `conda install`）。激活环境始终用 `conda activate`。
 
 ---
 
@@ -84,6 +88,8 @@ conda --version
 brew install --cask miniconda
 conda init zsh   # 若使用 Zsh（Mac 默认）
 ```
+
+装好后用 `conda --version` 验证即可。**Mac 上到此为止，无需再 `conda install mamba`。** 平台一键环境见 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)（`conda env create -f myenv.yml`）。
 
 ### 2. Ubuntu / Linux
 
@@ -130,14 +136,16 @@ conda init powershell  # Windows PowerShell
 
 然后**关掉终端再打开**（或执行 `source ~/.zshrc`）。若提示符前出现 `(base)`，说明 conda 已生效。
 
-### 2. 安装 Mamba（强烈推荐）
+### 2. 安装 Mamba（可选；Linux 可加速，Mac 请跳过）
 
-`(base)` 是 conda 自带的默认环境，**只用来装 mamba 本身**，别往里面堆项目包。在 base 里执行一次：
+`base` 环境**不要**堆项目包。若你在 **Linux / 集群**上想加速求解，可在 `base` 里装一次 Mamba：
 
 ```bash
 conda install mamba -n base -c conda-forge
 mamba --version
 ```
+
+> **Mac：** 请**跳过本步**。本站实测 / 反馈中，Mamba 在部分 Apple Silicon Mac 上兼容性不如纯 `conda` 稳（求解失败、环境异常等）。直接用 `conda create` / `conda install` 即可；稍慢可接受。详见上文第二节与 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)。
 
 ### 3. 可选：加快 conda-forge 访问
 
@@ -208,11 +216,14 @@ mamba create -n myproject-copy --clone myproject
 conda activate myproject
 ```
 
-### 1. 用 mamba 安装（首选）
+### 1. 用 conda / mamba 安装（首选）
+
+Mac 用 `conda`；Linux 可用 `mamba`（更快）或同样用 `conda`：
 
 ```bash
-mamba install numpy scipy matplotlib
-mamba install -c conda-forge rdkit    # 指定通道
+conda install numpy scipy matplotlib          # Mac 推荐；Linux 也可用
+# mamba install numpy scipy matplotlib        # 仅 Linux / 集群可选
+conda install -c conda-forge rdkit            # 指定通道
 ```
 
 ### 2. 用 pip 安装（mamba 里没有的包）
@@ -379,7 +390,8 @@ python --version
 
 ### 4. Solving environment 很慢或失败
 
-- 优先用 **mamba** 代替 `conda install`
+- **Mac：** 用 **`conda`**，不要改装 Mamba「提速」；可配国内镜像（见第四节），求解久属正常
+- **Linux：** 可用 **mamba** 代替 `conda install` 加速
 - 尽量在**新环境**里安装，而不是往旧环境里硬塞
 - 指定版本范围，减少求解空间：`python=3.12`、`numpy>=1.26,<2`
 - 冲突严重时，新建环境往往比修复旧环境更省时
@@ -411,6 +423,8 @@ conda activate myenv
 
 ## 十一、命令速查表
 
+下表以 `mamba` 为例；**Mac 把 `mamba` 全部换成 `conda` 即可**。
+
 | 你想做的事 | 命令 |
 |-----------|------|
 | 创建环境 | `mamba create -n 环境名 python=3.12 -y` |
@@ -440,12 +454,12 @@ conda activate myenv
 ## 十三、小结
 
 1. **一个项目一个环境**，尽量别在 `base` 里堆包。  
-2. **Miniconda + Mamba**：创建和安装用 mamba，激活用 conda。  
-3. **日常三板斧**：`mamba create` → `conda activate` → `mamba install`。  
+2. **Mac：只用 Conda**（别装 Mamba）；**Linux：可用 Miniconda + Mamba 加速**，或全程 conda。  
+3. **日常三板斧**：`create` → `conda activate` → `install`（Mac 全程 `conda`；Linux 可用 `mamba` 装包）。  
 4. **复现与分享**：`environment.yml` 是团队协作的标配。  
 5. **编辑器**：在 VSCode / Cursor 里选对解释器和 Jupyter Kernel，避免「终端对了、Notebook 错了」。
 
-掌握以上内容，就足以应对日常 Python 科研开发中的环境管理需求；分子模拟方向的完整依赖清单与一键部署，请继续参考本站[分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md) 教程。`Solving environment` 卡住或报错时，把终端**完整输出**复制去搜，往往能找到具体解决办法。
+掌握以上内容，就足以应对日常 Python 科研开发中的环境管理需求；分子模拟方向的完整依赖清单与一键部署（**统一 `conda`**），请继续参考本站[分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md) 教程。`Solving environment` 卡住或报错时，把终端**完整输出**复制去搜，往往能找到具体解决办法。
 
 ---
 

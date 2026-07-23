@@ -86,13 +86,13 @@ fix_modify      mynvt  temp  fluid_temp
 thermo_style    custom  step  time  v_fluid_temp  atoms  &
                         pxx  pyy  pzz  lx  ly  lz  v_upper_cmz
 thermo_modify   flush yes
-thermo          2000
+thermo          1000
 
 # ----- 平衡前给流体赋 Maxwell 速度 -----
 velocity        fluid  create  ${mytemp}  ${myrand}  mom yes  rot yes
 
 write_data      result_atoms.data  nofix
-dump            mydump  all  custom  200000  result_atoms.lammpstrj  id type xsu ysu zsu
+dump            mydump  all  custom  100000  result_atoms.lammpstrj  id type xsu ysu zsu
 
 # ----- 沿 z 的局部应力 / 数密度剖面（chunk + ave/chunk）-----
 compute         mystress  all  stress/atom  NULL
@@ -101,5 +101,5 @@ fix             stress_profile  all  ave/chunk  1000  100  100000  mybins  &
                 c_mystress[1]  c_mystress[2]  c_mystress[3]  density/number  &
                 norm all  ave running  overwrite  file result_profile_stress.log
 
-# ----- 生产段：2e6 步 × 1 fs ≈ 2 ns -----
-run             2000000
+# ----- 生产段：1e6 步 × 1 fs = 1 ns -----
+run             1000000
