@@ -94,7 +94,7 @@ Ketcher 画板（2D 结构）
 
 ## 六、限制
 
-- **单分子原子数上限**：由配置决定（默认约 1000，见 [MDStudio 使用须知与限制](M02-MDStudio使用须知与限制.md)）。因为会自动加氢，平台还会做一个**保守预警**：若重原子数在加氢后可能超限，会提前提示简化结构。
+- **单分子原子数上限**：由配置决定（默认约 1000，见 [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md)）。因为会自动加氢，平台还会做一个**保守预警**：若重原子数在加氢后可能超限，会提前提示简化结构。
 - **工作区配额**：写入受工作区总大小与单文件大小限制约束。
 
 ---
@@ -102,8 +102,8 @@ Ketcher 画板（2D 结构）
 ## 七、接着做
 
 - **一步到力场**：点「用于生成力场」会保存 `.mol` 并自动切到 [MDStudio力场生成](M09-MDStudio力场生成.md) 的文件模式，已选中该文件；入门常用 GAFF2 + AM1-BCC。
-- **装盒与冒烟**：[搭建模拟盒子（Packmol 三步）](M11-MDStudio搭建盒子.md) → [测试模拟（Lammps 冒烟）](M12-MDStudio测试模拟.md)。
-- **最短闭环**：[MDStudio Quickstart：从画分子到测试模拟](M01-Quickstart从画分子到测试模拟.md)。
+- **装盒与冒烟**：[MDStudio搭建盒子](M11-MDStudio搭建盒子.md) → [MDStudio测试模拟](M12-MDStudio测试模拟.md)。
+- **最短闭环**：[Quickstart：从画分子到测试模拟](M01-Quickstart从画分子到测试模拟.md)。
 
 ---
 
@@ -114,7 +114,7 @@ Ketcher 画板（2D 结构）
 | 画板空白 / 打不开 | 确认为 HTTPS 或 localhost、浏览器较新；硬刷新重试           |
 | 保存 / 三维化失败 | 检查价键是否闭合、有无游离原子；缩小分子；查提示中的报错信息              |
 | 提示原子数超限    | 分子过大或加氢后超限；简化结构，或按须知确认上限                    |
-| 想用现成分子     | 改走 [分子仓库（浏览、预览与导入）](M08-MDStudio分子仓库.md) 导入 |
+| 想用现成分子     | 改走 [MDStudio分子仓库](M08-MDStudio分子仓库.md) 导入 |
 | 切走后结构没了    | 画板不跨 Tab 保留；请先保存，再从资源管理器重新载入                |
 
 ---
@@ -135,12 +135,12 @@ Ketcher 画板（2D 结构）
 
 **前置阅读：**
 
-- [MDStudio Quickstart：从画分子到测试模拟](M01-Quickstart从画分子到测试模拟.md)
-- [MDStudio 使用须知与限制](M02-MDStudio使用须知与限制.md)
-- [MDStudio 功能与界面总览](M03-MDStudio功能与界面总览.md)
+- [Quickstart：从画分子到测试模拟](M01-Quickstart从画分子到测试模拟.md)
+- [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md)
+- [MDStudio功能与界面总览](M03-MDStudio功能与界面总览.md)
 
 **下一步：**
 
 - [MDStudio力场生成](M09-MDStudio力场生成.md)
-- [分子仓库（浏览、预览与导入）](M08-MDStudio分子仓库.md)
-- [搭建模拟盒子（Packmol 三步）](M11-MDStudio搭建盒子.md)
+- [MDStudio分子仓库](M08-MDStudio分子仓库.md)
+- [MDStudio搭建盒子](M11-MDStudio搭建盒子.md)

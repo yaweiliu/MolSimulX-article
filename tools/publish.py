@@ -32,6 +32,7 @@ import html
 import json
 import re
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
@@ -483,22 +484,49 @@ def strip_internal_lines(text: str, patterns: list[str]) -> str:
     return "\n".join(out).strip() + "\n"
 
 
+def run_outside_code(md: str, fn: Callable[[str], str]) -> str:
+    """对正文运行 fn，但先把围栏代码块 / 行内代码保护起来，避免改写代码里的示例文本。
+
+    例如 Obsidian 教程正文里的 `[[双向链接]]`、```markdown ... [[链接]] ... ``` 这类
+    示例，应原样保留，而不是被当成站内链接改写或标成「待发布」。
+    """
+    stash: list[str] = []
+
+    def _stash(match: re.Match[str]) -> str:
+        stash.append(match.group(0))
+        return f"MOLSIMULXRAW{len(stash) - 1}END"
+
+    # 先围栏、再行内（单反引号）；占位符不含括号，不会被后续链接/图片正则命中。
+    tmp = re.sub(r"```[\s\S]*?```", _stash, md)
+    tmp = re.sub(r"(?<!`)`([^`\n]+)`(?!`)", _stash, tmp)
+    tmp = fn(tmp)
+
+    def _restore(match: re.Match[str]) -> str:
+        idx = int(match.group(1))
+        return stash[idx] if 0 <= idx < len(stash) else match.group(0)
+
+    return re.sub(r"MOLSIMULXRAW(\d+)END", _restore, tmp)
+
+
 def preprocess_obsidian(md: str) -> str:
-    md = re.sub(r"!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]", r"![\1](\1)", md)
+    def convert(text: str) -> str:
+        text = re.sub(r"!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]", r"![\1](\1)", text)
 
-    def wikilink(m: re.Match[str]) -> str:
-        body = m.group(1)
-        if "|" in body:
-            target, label = body.split("|", 1)
-        else:
-            target, label = body, body
-        target = target.strip()
-        label = label.strip()
-        if not target.endswith(".md"):
-            target = f"{target}.md"
-        return f"[{label}]({target})"
+        def wikilink(m: re.Match[str]) -> str:
+            body = m.group(1)
+            if "|" in body:
+                target, label = body.split("|", 1)
+            else:
+                target, label = body, body
+            target = target.strip()
+            label = label.strip()
+            if not target.endswith(".md"):
+                target = f"{target}.md"
+            return f"[{label}]({target})"
 
-    return re.sub(r"\[\[([^\]]+)\]\]", wikilink, md)
+        return re.sub(r"\[\[([^\]]+)\]\]", wikilink, text)
+
+    return run_outside_code(md, convert)
 
 
 def resolve_image_path(src: str, md_path: Path, cfg: dict[str, Any]) -> Path | None:
@@ -1252,14 +1280,18 @@ def publish_file(
 
     if not dry_run:
         body = rewrite_images(body, md_path, site, sess, cfg, cache)
-        body = rewrite_internal_links(
+        body = run_outside_code(
             body,
-            md_path,
-            cfg,
-            cache,
-            site,
-            strict=strict_links,
-            guess_unpublished=guess_unpublished or cfg["publish"].get("guess_unpublished_links", False),
+            lambda text: rewrite_internal_links(
+                text,
+                md_path,
+                cfg,
+                cache,
+                site,
+                strict=strict_links,
+                guess_unpublished=guess_unpublished
+                or cfg["publish"].get("guess_unpublished_links", False),
+            ),
         )
 
     article_html = md_to_html(body, cfg["publish"].get("wrap_html", True), title=title)
@@ -1462,7 +1494,7 @@ def main() -> None:
     parser.add_argument(
         "--keep-image-sources",
         action="store_true",
-        help="发布后仍保留 images/ 散落源图（默认会清理重复件；original/ 归档始终保留）",
+        help="发布后保留项目内散落源图（默认含 images/ 外都会清理；original/ 归档始终保留）",
     )
     parser.add_argument(
         "--status",

@@ -1,0 +1,5 @@
+quantity,value,unit
+T_fluid,299.3766954645355,K
+piston_z_final,22.819184,Å
+density_bulk,33.600109833333335,nm^-3
+P_bulk,-10.274250734799667,atm

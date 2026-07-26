@@ -62,7 +62,7 @@ erphpdown_blocks: 1
 | **`.mol`** | MDL molfile，首行 `name ff.ff` 声明力场 |
 | **`.pdb`** | `ATOM/HETATM` 坐标，`COMPND name ff.ff` 声明力场 |
 
-关键前提：**每个物种文件都必须能定位到对应的 `.ff`**。选择器只显示「已声明并能找到 `.ff`」的文件；缺 `.ff` 的结构不会出现在待选列表里。这也是为什么正常路径是先在[力场生成](M09-MDStudio力场生成.md)得到 `{name}_ff.xyz` + `{name}.ff`，再来装盒。
+关键前提：**每个物种文件都必须能定位到对应的 `.ff`**。选择器只显示「已声明并能找到 `.ff`」的文件；缺 `.ff` 的结构不会出现在待选列表里。这也是为什么正常路径是先在[MDStudio力场生成](M09-MDStudio力场生成.md)得到 `{name}_ff.xyz` + `{name}.ff`，再来装盒。
 
 下列 MolSimulX 流水线中间产物会被排除，避免把装盒结果又当作物种送回去：
 
@@ -75,7 +75,7 @@ erphpdown_blocks: 1
 
 | 文件 | 读取重点 |
 |------|----------|
-| **`.xyz`** | 第二行 cell 注释（如力场生成 / 超胞变换写入的晶胞） |
+| **`.xyz`** | 第二行 cell 注释（如力场生成 / 结构变换写入的晶胞） |
 | **`.cif`** | 晶胞参数 `a b c α β γ` |
 | **`.mol2`** | `@<TRIPOS>CRYSIN` 晶胞行 |
 
@@ -153,10 +153,10 @@ erphpdown_blocks: 1
 
 ### pack.inp 覆盖保护
 
-`pack.inp` 允许手动编辑（[资源管理器](M04-MDStudio资源管理器.md)里改，或做特殊约束）。平台会将其与上次自动生成的基线对比来识别改动：
+`pack.inp` 允许手动编辑（[MDStudio资源管理器](M04-MDStudio资源管理器.md)里改，或做特殊约束）。平台会将其与上次自动生成的基线对比来识别改动：
 
 - 一旦检测到 `pack.inp` 被手动编辑，界面提示可**直接点 ② 使用当前文件**；
-- 若仍想用表单重新「① 生成 Packmol」覆盖它，需先勾选「覆盖手动编辑的 pack.inp」，随后新文件会直接覆盖旧的手改版。重要脚本请自行在[资源管理器](M04-MDStudio资源管理器.md)里复制备份。
+- 若仍想用表单重新「① 生成 Packmol」覆盖它，需先勾选「覆盖手动编辑的 pack.inp」，随后新文件会直接覆盖旧的手改版。重要脚本请自行在[MDStudio资源管理器](M04-MDStudio资源管理器.md)里复制备份。
 
 这样既能保留手改脚本，又避免误覆盖。
 
@@ -197,7 +197,7 @@ $$
 
 > **术语：离面角 = 不当二面角。** 本文的「离面角」对应 LAMMPS 的 `improper`，在 K 系列力场文章里一直称作「不当二面角」（improper dihedral），指的是同一样东西——约束一个中心原子与其三个相邻原子构成的平面外偏离（如保持羰基、芳环共面）。下文的 `IMPROPER` 段、`improper_style` 均指此项。
 
-> **与力场生成的区别**：装盒阶段的键连匹配**不做** `[guess]` 近似兜底——参数应在[力场生成](M09-MDStudio力场生成.md)阶段就匹配好、检查完。装盒只是复用这些模板。
+> **与力场生成的区别**：装盒阶段的键连匹配**不做** `[guess]` 近似兜底——参数应在[MDStudio力场生成](M09-MDStudio力场生成.md)阶段就匹配好、检查完。装盒只是复用这些模板。
 
 **需要按元素判键时，元素信息从哪里来？**
 
@@ -307,19 +307,19 @@ fix myshake all shake 0.0001 20 0 b <bond types> a <angle types>
 | **超出在线 Packmol 处理规模** | 任务挂起并生成 `run_packmol.sh`：可下载 `pack.inp` + `run_packmol.sh` 到自有计算节点装盒，跑完把 `simbox.xyz` 上传回工作区，再点 ② 校验 |
 | **已上传合规 `simbox.xyz`** | ② 只校验原子数并补 cell 注释，随后即可点 ③ |
 
-具体阈值数字、`run_packmol.sh` 的使用与 10 万原子以上的定制装盒，见 [MDStudio 使用须知与限制](M02-MDStudio使用须知与限制.md)。
+具体阈值数字、`run_packmol.sh` 的使用与 10 万原子以上的定制装盒，见 [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md)。
 
 ---
 
 ## 十一、推荐流程
 
-1. 在[力场生成](M09-MDStudio力场生成.md)为每个组分得到 `{name}_ff.xyz` + `{name}.ff`，并检查 `.ff`。
+1. 在[MDStudio力场生成](M09-MDStudio力场生成.md)为每个组分得到 `{name}_ff.xyz` + `{name}.ff`，并检查 `.ff`。
 2. 打开搭建盒子，勾选物种、填个数、调整顺序。
 3. 设盒子尺寸（或从含晶胞的文件「读取」），确认原点与周期边界。
 4. 依次点 ①②③；每步看结果面板与日志。
 5. 可视化检查 `simbox.xyz`，确认无穿插、无大空腔。
 6. 下载 `data.lmp` / `in.lmp`（及 `pair.lmp`）备份到本机。
-7. 先做[测试模拟（Lammps 冒烟）](M12-MDStudio测试模拟.md)，通过后再下载到计算节点做生产长跑。
+7. 先做[MDStudio测试模拟](M12-MDStudio测试模拟.md)，通过后再下载到计算节点做生产长跑。
 
 ---
 
@@ -355,10 +355,10 @@ fix myshake all shake 0.0001 20 0 b <bond types> a <angle types>
 **前置阅读：**
 
 - [MDStudio力场生成](M09-MDStudio力场生成.md)
-- [MDStudio 资源管理器（工作区文件）](M04-MDStudio资源管理器.md)
-- [MDStudio 使用须知与限制](M02-MDStudio使用须知与限制.md)
+- [MDStudio资源管理器](M04-MDStudio资源管理器.md)
+- [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md)
 
 **下一步：**
 
-- [测试模拟（Lammps 冒烟）](M12-MDStudio测试模拟.md)
-- [MDStudio 资源管理器（工作区文件）](M04-MDStudio资源管理器.md)
+- [MDStudio测试模拟](M12-MDStudio测试模拟.md)
+- [MDStudio资源管理器](M04-MDStudio资源管理器.md)

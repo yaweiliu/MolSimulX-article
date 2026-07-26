@@ -22,9 +22,9 @@ bond_style      harmonic
 angle_style     harmonic
 special_bonds   amber                                   # 1-2/1-3/1-4 权重与 AMBER/GAFF 一致
 
-pair_style      lj/cut/coul/long  10.0  10.0             # LJ + 截断库仑；无长程 kspace
+pair_style      lj/cut/coul/long  10.0  10.0             # LJ + 长程库仑
 pair_modify     mix arithmetic  shift yes
-kspace_style    pppm  1.0e-4                            # 若改用长程静电势，取消注释并调整 pair_style
+kspace_style    pppm  1.0e-4                           
 
 read_data       data.lmp
 

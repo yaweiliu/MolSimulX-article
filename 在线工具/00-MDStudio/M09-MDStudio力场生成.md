@@ -42,7 +42,7 @@ erphpdown_blocks: 1
 | 输出               | 保存内容                                 | 后续用途                            |
 | ---------------- | ------------------------------------ | ------------------------------- |
 | `{name}_ff.mol2` | 标准化后的结构、键连、最终原子名与部分电荷                | 检查电荷与成键；后续复用或格式转换               |
-| `{name}_ff.xyz`  | 原子名与笛卡尔坐标；第二行引用 `{name}.ff`，周期体系还含晶胞 | 直接送入「搭建盒子」或「超胞变换」               |
+| `{name}_ff.xyz`  | 原子名与笛卡尔坐标；第二行引用 `{name}.ff`，周期体系还含晶胞 | 直接送入「搭建盒子」或「结构变换」               |
 | `{name}.ff`      | 原子类型、质量、部分电荷、LJ 和键连参数                | 与 `_ff.xyz` 配套，供装盒及生成 Lammps 输入 |
 
 ---
@@ -889,7 +889,7 @@ run_cp2k.sh
 9. **执行并看日志**：检查结构转换、电荷、类型分配和参数匹配各阶段是否成功。
 10. **检查三件套**：`_ff.mol2`、`_ff.xyz`、`.ff` 是否都生成。
 11. **搜索异常标记**：双击 `.ff`，查找 `[guess]`、`[UFF fallback]`。
-12. **预览并进入下一步**：单击 `_ff.xyz` 看结构；需要扩胞时进入 [MDStudio超胞变换](M10-MDStudio超胞变换.md)，否则进入 [MDStudio搭建盒子](M11-MDStudio搭建盒子.md)。
+12. **预览并进入下一步**：单击 `_ff.xyz` 看结构；需要扩胞或建分子晶体时进入 [MDStudio结构变换](M10-MDStudio结构变换.md)，否则进入 [MDStudio搭建盒子](M11-MDStudio搭建盒子.md)。
 
 ---
 
@@ -923,7 +923,7 @@ run_cp2k.sh
 5. 默认 format 2 用合并的 `ATOMS` + 逐位点 `CHARGES`，可减少 Lammps atom type。
 6. `_ff.xyz` 保存坐标并引用 `.ff`；电荷和参数不在 XYZ 中，两者必须成对保留。
 7. `.ff` 可按第八节列布局手改电荷、LJ、键角二面角；format 2 电荷在 `CHARGES`，键连按 `ff_type` 匹配。
-8. 生成后应检查 `_ff.mol2`、3D 结构，以及 `.ff` 中的 `[guess]` / `[UFF fallback]`，再进入超胞或装盒。
+8. 生成后应检查 `_ff.mol2`、3D 结构，以及 `.ff` 中的 `[guess]` / `[UFF fallback]`，再进入结构变换或装盒。
 
 [/erphpdown]
 
@@ -939,6 +939,6 @@ run_cp2k.sh
 
 **下一步：**
 
-- [MDStudio超胞变换](M10-MDStudio超胞变换.md)
+- [MDStudio结构变换](M10-MDStudio结构变换.md)
 - [MDStudio搭建盒子](M11-MDStudio搭建盒子.md)
-- [MDStudio Quickstart：从画分子到测试模拟](M01-Quickstart从画分子到测试模拟.md)
+- [Quickstart：从画分子到测试模拟](M01-Quickstart从画分子到测试模拟.md)

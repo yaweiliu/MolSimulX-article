@@ -12,8 +12,9 @@
   python tools/sync_article_images.py --file Git简明使用教程.md --rewrite-md
   python tools/sync_article_images.py --all
 
-源图可放在任意位置（如 images/、images/inbox/、旧路径）；脚本按 md 引用查找并归档。
-发布（publish.py）默认在生成 web/*.webp 后清理 images/ 散落重复源图；articles/.../original/ 归档原图保留。
+源图可放在任意位置（如 images/、images/inbox/、downloads/、旧路径）；脚本按 md 引用查找并归档。
+发布（publish.py）默认在生成 web/*.webp 后清理项目内散落重复源图；
+articles/.../original/ 归档原图与 web/ 发布图保留，项目外文件不自动删除。
 """
 
 from __future__ import annotations
@@ -257,20 +258,26 @@ def apply_image_path_rewrites(
 
 
 def is_scattered_image_source(path: Path) -> bool:
-    """images/ 根目录或随意路径的重复源图（归档后可删）；保留 site/、articles/.../web/。"""
+    """项目内可清理的散落源图；保留站点图、文章 original/web 与项目外文件。"""
     if not path.is_file() or WEB_DIR_NAME in path.parts:
         return False
     try:
-        rel = path.relative_to(IMAGES_ROOT)
+        project_rel = path.resolve().relative_to(PROJECT_ROOT.resolve())
     except ValueError:
+        # 绝对路径可能指向用户的素材库；即使文章引用它，也只复制，不删除。
         return False
-    if not rel.parts:
+
+    try:
+        image_rel = path.resolve().relative_to(IMAGES_ROOT.resolve())
+    except ValueError:
+        # downloads/、在线资源旁或项目内其他位置的被引用源图，归档后可删。
+        return bool(project_rel.parts)
+
+    if not image_rel.parts or image_rel.parts[0] in ("site", "inbox"):
         return False
-    if rel.parts[0] in ("site", "inbox"):
-        return False
-    if "articles" in rel.parts:
-        idx = rel.parts.index("articles")
-        tail = rel.parts[idx + 1 :]
+    if "articles" in image_rel.parts:
+        idx = image_rel.parts.index("articles")
+        tail = image_rel.parts[idx + 1 :]
         if len(tail) >= 3 and tail[2] in (ORIGINAL_DIR_NAME, WEB_DIR_NAME):
             return False
     return True
@@ -285,8 +292,9 @@ def prune_image_sources(
     prune_sources: bool,
 ) -> list[str]:
     """
-    WebP 生成成功后清理 images/ 根目录等散落重复源图。
-    归档目录 articles/.../original/ 内的大图保留，便于日后重导。
+    WebP 生成成功后清理项目内散落重复源图（包括 images/ 外）。
+    归档目录 articles/.../original/ 内的大图保留，便于日后重导；
+    项目外绝对路径只复制，不自动删除。
     """
     removed: list[str] = []
     if not prune_sources or dry_run or not web_path.is_file():
@@ -437,12 +445,12 @@ def main() -> int:
     parser.add_argument(
         "--prune-sources",
         action="store_true",
-        help="WebP 成功后删除 images/ 散落重复源图（保留 articles/.../original/；发布时默认开启）",
+        help="WebP 成功后删除项目内散落重复源图（含 images/ 外；保留 original/web；发布默认开启）",
     )
     parser.add_argument(
         "--keep-sources",
         action="store_true",
-        help="与 --prune-sources 相反：保留 images/ 根目录等散落源图",
+        help="与 --prune-sources 相反：保留项目内所有散落源图",
     )
     args = parser.parse_args()
     if args.prune_sources and args.keep_sources:

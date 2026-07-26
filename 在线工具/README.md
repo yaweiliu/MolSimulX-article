@@ -32,8 +32,11 @@ YAML 要点：`series: 在线工具` · `tier: MDStudio`（或 DataHub / AILab�
 | **M05** | [力场转换（LigParGen / 外部力场）](M05-MDStudio力场转换.md) | vip | reviewed |
 | **M06** | [孤立分子（Ketcher 绘制）](M06-MDStudio孤立分子.md) | vip | reviewed |
 | **M07** | [周期分子（晶体 / 表面 / 纳米结构）](M07-MDStudio周期分子.md) | vip | reviewed |
+| **M13** | [粗粒颗粒（单珠 / 棒链 / 二维 / 球壳）](M13-MDStudio粗粒颗粒.md) | vip | draft |
 | **M08** | [分子仓库（浏览、预览与导入）](M08-MDStudio分子仓库.md) | vip | reviewed |
 | **M09** | [MDStudio力场生成](M09-MDStudio力场生成.md) | vip | reviewed |
-| **M10** | [MDStudio超胞变换](M10-MDStudio超胞变换.md) | vip | reviewed |
+| **M10** | [MDStudio结构变换](M10-MDStudio结构变换.md) | vip | reviewed |
 | **M11** | [搭建模拟盒子（Packmol 三步）](M11-MDStudio搭建盒子.md) | vip | reviewed |
 | **M12** | [测试模拟（Lammps 冒烟）](M12-MDStudio测试模拟.md) | vip | reviewed |
+
+> 上表按**界面 Tab 顺序**排列。「粗粒颗粒」在界面上位于周期分子与分子仓库之间；为避免给 M08–M12 重新编号，它沿用下一个空闲编号 **M13**。

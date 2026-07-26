@@ -23,7 +23,7 @@ paywall: free
 
 跑通之后，还可以在站内做一次短时**测试模拟**，确认输入能启动、体系看起来稳定、分子拓扑结构不变。密度收敛、长轨迹、物性分析不在这里做——输入齐了，再下载到[本机或集群](../../在线资源/01-技术文档/T01-分子模拟工作平台搭建.md)正式算。
 
-本文是 **Quickstart**：用一条故意做小的**乙醇体系**路径，大约 10–15 分钟走完「绘制 → 力场 → 装盒 → 测试」。学完能带走：该点哪些按钮、工作区里会出现哪些文件名、成功时右侧预览长什么样。各 Tab 与界面地图见 [MDStudio 功能与界面总览](M03-MDStudio功能与界面总览.md)，左侧文件面板见 [MDStudio 资源管理器（工作区文件）](M04-MDStudio资源管理器.md)；**正式使用前务必了解 [MDStudio 使用须知与限制](M02-MDStudio使用须知与限制.md)。**
+本文是 **Quickstart**：用一条故意做小的**乙醇体系**路径，大约 10–15 分钟走完「绘制 → 力场 → 装盒 → 测试」。学完能带走：该点哪些按钮、工作区里会出现哪些文件名、成功时右侧预览长什么样。各 Tab 与界面地图见 [MDStudio功能与界面总览](M03-MDStudio功能与界面总览.md)，左侧文件面板见 [MDStudio资源管理器](M04-MDStudio资源管理器.md)；**正式使用前务必了解 [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md)。**
 
 ![MDStudio-demo-poster](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-hero-MDStudio-demo-poster.webp)
 
@@ -98,7 +98,7 @@ paywall: free
 
 | 问题 | 处理 |
 |------|------|
-| Tab 提示开通会员 | 确认已登录；权益说明见 [MDStudio 使用须知与限制](M02-MDStudio使用须知与限制.md) |
+| Tab 提示开通会员 | 确认已登录；权益说明见 [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md) |
 | 力场失败 / 超时 | 分子是否过大；电荷是否仍为 AM1-BCC；打开任务日志看报错 |
 | 装盒提示下载 `run_packmol.sh` | 本案例把分子数保持约 10 再试；其它情形见须知 |
 | 测试模拟不能启动 | 确认 **data.lmp**、**in.test.lmp** 均显示就绪；仍不行再对照须知 |
@@ -122,6 +122,6 @@ paywall: free
 
 **下一步：**
 
-- [MDStudio 使用须知与限制](M02-MDStudio使用须知与限制.md) —— 使用中需要时再读
-- [MDStudio 功能与界面总览](M03-MDStudio功能与界面总览.md) —— 界面地图与主路径
-- [MDStudio 资源管理器（工作区文件）](M04-MDStudio资源管理器.md) —— 上传、下载与手改文件
+- [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md) —— 使用中需要时再读
+- [MDStudio功能与界面总览](M03-MDStudio功能与界面总览.md) —— 界面地图与主路径
+- [MDStudio资源管理器](M04-MDStudio资源管理器.md) —— 上传、下载与手改文件

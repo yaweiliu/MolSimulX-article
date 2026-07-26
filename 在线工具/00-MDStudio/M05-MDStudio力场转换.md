@@ -110,7 +110,7 @@ ATB 的单分子 `.itp` **不含 `[ atomtypes ]`**，因此 LJ 参数从平台�
 
 > ATB 的 `[ nonbond_params ]` 交叉项**不写入** `.ff`（装盒阶段按几何混合规则处理），`[ pairs ]` / `[ exclusions ]`（1-4 特殊缩放）也**不解析**。只覆盖 ATB 常见的 bond 2 / angle 2 / dihedral 1、2。
 
-关于「离面角 = 不当二面角」的术语说明见 [搭建模拟盒子](M11-MDStudio搭建盒子.md)。
+关于「离面角 = 不当二面角」的术语说明见 [MDStudio搭建盒子](M11-MDStudio搭建盒子.md)。
 
 ---
 
@@ -161,11 +161,11 @@ ATB 的单分子 `.itp` **不含 `[ atomtypes ]`**，因此 LJ 参数从平台�
 
 **前置阅读：**
 
-- [MDStudio 使用须知与限制](M02-MDStudio使用须知与限制.md)
-- [MDStudio 功能与界面总览](M03-MDStudio功能与界面总览.md)
-- [MDStudio 资源管理器（工作区文件）](M04-MDStudio资源管理器.md)
+- [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md)
+- [MDStudio功能与界面总览](M03-MDStudio功能与界面总览.md)
+- [MDStudio资源管理器](M04-MDStudio资源管理器.md)
 
 **下一步：**
 
-- [搭建模拟盒子（Packmol 三步）](M11-MDStudio搭建盒子.md)
+- [MDStudio搭建盒子](M11-MDStudio搭建盒子.md)
 - [MDStudio力场生成](M09-MDStudio力场生成.md)

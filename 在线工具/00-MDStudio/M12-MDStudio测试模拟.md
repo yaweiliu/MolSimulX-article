@@ -73,7 +73,7 @@ erphpdown_blocks: 1
 
 点「① 生成测试脚本」，平台从 `data.lmp` + `in.lmp` 派生出 `in.test.lmp`（详见第四节差异）。生成时会：
 
-- 从 `data.lmp` 的 `Masses` 段注释读取每个 type 的**元素符号**，用于轨迹 dump 的元素标注（这也是搭建盒子把 Masses 注释写成纯元素符号的用处，见 [搭建模拟盒子](M11-MDStudio搭建盒子.md) 的 `data.lmp` 说明）；
+- 从 `data.lmp` 的 `Masses` 段注释读取每个 type 的**元素符号**，用于轨迹 dump 的元素标注（这也是搭建盒子把 Masses 注释写成纯元素符号的用处，见 [MDStudio搭建盒子](M11-MDStudio搭建盒子.md) 的 `data.lmp` 说明）；
 - 校验原子数不超上限，超限则拒绝生成。
 
 ### ② 运行测试模拟
@@ -144,7 +144,7 @@ erphpdown_blocks: 1
 | **原子数上限** | 约千原子 | 超过则 ① / ② 直接拦截，请回搭建盒子减少分子数重装 |
 | **单次墙钟上限** | 数十秒量级 | 到时按时终止；这是冒烟的正常边界，不是报错 |
 
-界面会显示当前生效的原子数上限与墙钟秒数；权威阈值与整体额度见 [MDStudio 使用须知与限制](M02-MDStudio使用须知与限制.md)。需要更大体系或更长模拟，请下载输入到本地 / 集群运行。
+界面会显示当前生效的原子数上限与墙钟秒数；权威阈值与整体额度见 [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md)。需要更大体系或更长模拟，请下载输入到本地 / 集群运行。
 
 ---
 
@@ -183,12 +183,12 @@ erphpdown_blocks: 1
 
 **前置阅读：**
 
-- [搭建模拟盒子（Packmol 三步）](M11-MDStudio搭建盒子.md)
-- [MDStudio 使用须知与限制](M02-MDStudio使用须知与限制.md)
-- [MDStudio Quickstart：从画分子到测试模拟](M01-Quickstart从画分子到测试模拟.md)
+- [MDStudio搭建盒子](M11-MDStudio搭建盒子.md)
+- [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md)
+- [Quickstart：从画分子到测试模拟](M01-Quickstart从画分子到测试模拟.md)
 
 **下一步：**
 
 - [集群与 SLURM 简明教程](T10-集群与SLURM简明教程.md)
-- [MDStudio 资源管理器（工作区文件）](M04-MDStudio资源管理器.md)
-- [MDStudio 功能与界面总览](M03-MDStudio功能与界面总览.md)
+- [MDStudio资源管理器](M04-MDStudio资源管理器.md)
+- [MDStudio功能与界面总览](M03-MDStudio功能与界面总览.md)

@@ -1,0 +1,165 @@
+# =============================================================================
+# SPC/E bulk water: viscosity (Green-Kubo) + trajectories for diffusion
+# -----------------------------------------------------------------------------
+# System: ~500 SPC/E (data.lmp: type 1 = Hw, type 2 = Ow)
+# Workflow: minimize -> NVT+NPT equilibration 500 ps -> NPT production 2 ns
+# Production:
+#   1) fix ave/correlate on stress -> eta (GK), full 2 ns
+#   2) sparse traj result_traj_trans.* -> COM MSD -> translational D (full 2 ns)
+#   3) dense traj result_traj_rot.*    -> orientation / angular MSD -> Dr
+#      (short window at start only)
+# =============================================================================
+
+# ----- tunable parameters -----
+variable        myrand          equal   58938           # RNG seed for velocities
+variable        mytemp          equal   300.0           # target T [K]
+variable        mypress         equal   1.0             # target P [atm]
+variable        tdamp           equal   100.0           # thermostat damping [fs]
+variable        pdamp           equal   1000.0          # barostat damping [fs]
+
+# equilibration / production length (timestep = 1 fs)
+variable        nvt_steps       equal   100000          # NVT eq 100 ps
+variable        npt_eq_steps    equal   400000          # NPT eq 400 ps (500 ps total with NVT)
+variable        prod_steps      equal   2000000         # NPT production 2 ns
+variable        rot_steps       equal   200000          # dense dump only first 200 ps
+
+# dump stride [steps]; sparse for translation, dense for rotation
+variable        dump_trans_every equal  500             # 0.5 ps -> COM MSD
+variable        dump_rot_every   equal  20              # 20 fs  -> orientation / angular MSD
+
+# Green-Kubo viscosity: sample interval x correlation length = window
+#   window = corr_nevery * corr_nrepeat * dt = 5*400*1 fs = 2 ps
+variable        corr_nevery     equal   5
+variable        corr_nrepeat    equal   400
+variable        corr_nfreq      equal   2000            # must be multiple of nevery*nrepeat
+variable        prod_rest       equal   ${prod_steps}-${rot_steps}
+
+# ----- basic setup -----
+units           real
+boundary        p p p
+
+atom_style      full
+bond_style      harmonic
+angle_style     harmonic
+special_bonds   lj 0.0 0.0 0.5 coul 0.0 0.0 0.8333
+
+pair_style      lj/cut/coul/long  10.0  10.0
+pair_modify     mix arithmetic  shift yes
+kspace_style    pppm  1.0e-5
+
+read_data       data.lmp
+
+# LJ: epsilon [kcal/mol], sigma [Angstrom]
+pair_coeff      1  1    0.000000    0.000000            # Hw
+pair_coeff      2  2    0.155300    3.166000            # Ow
+
+neighbor        2.0  bin
+neigh_modify    delay 0  every 1  check yes
+
+timestep        1.0                                     # [fs]
+
+# ----- energy minimization -----
+minimize        0.0  1.0e-8  1000  100000
+reset_timestep  0
+
+# SPC/E: constrain O-H bonds (type 1) and H-O-H angle (type 1)
+fix             myshake  all  shake  0.0001  20  0  b  1  a  1
+
+# ----- thermo output -----
+thermo_style    custom  step  time  temp  press  lx  ly  lz  density  vol
+thermo_modify   flush yes
+thermo          1000
+
+# ----- initial velocities -----
+velocity        all  create  ${mytemp}  ${myrand}  dist gaussian  mom yes  rot yes
+
+write_data      result_atoms.data  nofix
+
+# =============================================================================
+# Equilibration: NVT 100 ps + NPT 400 ps = 500 ps
+# (no production dumps / no viscosity accumulate here)
+# =============================================================================
+
+# ----- 1. NVT equilibration -----
+fix             mynvt  all  nvt  temp  ${mytemp}  ${mytemp}  ${tdamp}
+run             ${nvt_steps}
+unfix           mynvt
+
+# ----- 2. NPT equilibration (relax density) -----
+fix             mynpt  all  npt  temp  ${mytemp}  ${mytemp}  ${tdamp}  &
+                iso  ${mypress}  ${mypress}  ${pdamp}
+run             ${npt_eq_steps}
+
+# end of equilibration: reset step counter, then open production outputs
+reset_timestep  0
+write_data      result_atoms.eq.data  nofix
+
+# =============================================================================
+# Production: continue NPT for 2 ns
+#   - sparse dump for full run -> translational diffusion (unwrap)
+#   - dense dump for first rot_steps only -> rotational diffusion
+#   - stress autocorrelation for full run -> viscosity (Green-Kubo)
+# =============================================================================
+
+# ----- translational traj (sparse, full run): xsu/ysu/zsu = unwrapped scaled -----
+dump            dump_trans  all  custom  ${dump_trans_every}  &
+                result_traj_trans.lammpstrj  id  mol  type  xsu  ysu  zsu
+dump_modify     dump_trans  sort id
+
+# ----- rotational traj (dense, short window): orientation decays fast -----
+dump            dump_rot  all  custom  ${dump_rot_every}  &
+                result_traj_rot.lammpstrj  id  mol  type  xsu  ysu  zsu
+dump_modify     dump_rot  sort id
+
+# ----- Green-Kubo viscosity: off-diagonal stress autocorrelations -----
+#   eta = (V / k_B T) int <P_ab(0) P_ab(t)> dt ; average three shear components
+#   units real: P [atm], V [A^3], t [fs] -> Pa.s, then *1000 -> cP
+variable        pxy             equal   pxy
+variable        pxz             equal   pxz
+variable        pyz             equal   pyz
+
+fix             visc_corr  all  ave/correlate  ${corr_nevery}  ${corr_nrepeat}  ${corr_nfreq}  &
+                v_pxy  v_pxz  v_pyz  type auto  file result_viscosity_correlate.dat  &
+                ave running
+
+variable        kB              equal   1.380649e-23    # [J/K]
+variable        atm2Pa          equal   101325.0
+variable        A3_to_m3        equal   1.0e-30
+variable        fs_to_s         equal   1.0e-15
+variable        convert         equal   ${atm2Pa}*${atm2Pa}*${A3_to_m3}*${fs_to_s}
+# trap integrates the correlation; multiply by sample interval corr_nevery*dt and unit convert
+variable        scale           equal   vol*${convert}/(${kB}*${mytemp})*${corr_nevery}*dt
+variable        eta_xy          equal   trap(f_visc_corr[3])*${scale}
+variable        eta_xz          equal   trap(f_visc_corr[4])*${scale}
+variable        eta_yz          equal   trap(f_visc_corr[5])*${scale}
+variable        viscosity_Pas   equal   (v_eta_xy+v_eta_xz+v_eta_yz)/3.0
+variable        viscosity_cP    equal   v_viscosity_Pas*1000.0
+
+# thermo must match corr_nfreq: ave/correlate only updates on multiples of Nfreq;
+# denser thermo (e.g. 1000) raises: Fix in variable not computed at compatible time
+thermo_style    custom  step  time  temp  press  density  vol  v_viscosity_cP
+thermo_modify   flush yes
+thermo          ${corr_nfreq}
+
+# ----- production part 1: sparse + dense dumps -----
+run             ${rot_steps}
+undump          dump_rot
+
+# ----- production part 2: sparse dump + viscosity only, finish 2 ns -----
+run             ${prod_rest}
+
+# ----- wrap-up: print eta before unfix (else f_visc_corr in variables is gone) -----
+print           """
+Production finished.
+  Equilibration: NVT ${nvt_steps} steps + NPT ${npt_eq_steps} steps (500 ps total)
+  Production:  NPT ${prod_steps} steps (2 ns)
+  Trans traj:  result_traj_trans.lammpstrj (full run, every ${dump_trans_every} steps)
+  Rot traj:    result_traj_rot.lammpstrj (first ${rot_steps} steps, every ${dump_rot_every} steps)
+  Viscosity:   result_viscosity_correlate.dat ; running avg eta ~ ${viscosity_cP} cP
+"""
+
+undump          dump_trans
+unfix           visc_corr
+unfix           mynpt
+
+write_data      result_atoms.prod.data  nofix
