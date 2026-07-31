@@ -154,7 +154,7 @@ def find_by_file_token(token: str, content_root: Path | None = None) -> Path:
 
 
 def print_article_table(rows: list[dict], *, reviewed_only: bool = False) -> None:
-    shown = [r for r in rows if not reviewed_only or r.get("status") in ("reviewed", "revised")]
+    shown = [r for r in rows if not reviewed_only or r.get("status") == "reviewed"]
     if not shown:
         print("（无匹配文章）")
         return
@@ -170,7 +170,7 @@ def print_article_table(rows: list[dict], *, reviewed_only: bool = False) -> Non
 
 def pick_article(content_root: Path | None = None, *, reviewed_only: bool = False) -> Path:
     rows = build_index(content_root)
-    shown = [r for r in rows if not reviewed_only or r.get("status") in ("reviewed", "revised")]
+    shown = [r for r in rows if not reviewed_only or r.get("status") == "reviewed"]
     if not shown:
         raise ValueError("没有可选文章")
     print_article_table(shown)

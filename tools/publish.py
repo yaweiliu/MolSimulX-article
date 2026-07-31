@@ -5,7 +5,7 @@ MolSimulX Markdown → WordPress 发布脚本
 流程：
   1. 自动运行 sync_article_images（归档图片、转 WebP、回写 md 路径）
   2. 读取 YAML front matter（status / title / tier / wp_slug / wp_post_id）
-  3. 仅 status=reviewed（新建）或 revised（更新）时同步
+  3. 仅 status=reviewed 时同步（draft 跳过，除非 --force）
   4. md → HTML，上传图片，替换站内 .md 链接
   5. 克隆母版文章（默认 650）的 Kadence 区块，注入第一个 wp:html 块
   6. CREATE / UPDATE；默认 WP 状态为 draft，可用 --publish 直接上线
@@ -22,6 +22,7 @@ MolSimulX Markdown → WordPress 发布脚本
   python tools/publish.py --id T02,T03 --publish --write-back-id
   python tools/publish.py --pick                       # 交互选文，不用打中文路径
   python tools/publish.py --file Git简明使用教程.md    # 仅文件名（唯一时）
+  python tools/publish.py --sync --write-back-id       # 增量：内容有变 / 新 reviewed / 互链回填
 """
 
 from __future__ import annotations
@@ -33,6 +34,7 @@ import json
 import re
 import sys
 from collections.abc import Callable
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
@@ -246,7 +248,7 @@ COPY_CODE_SCRIPT = """
 })();
 </script>
 """.strip()
-PUBLISHABLE_STATUS = frozenset({"reviewed", "revised"})
+PUBLISHABLE_STATUS = frozenset({"reviewed"})
 SKIP_MD_NAMES = frozenset({
     "README.md",
     "入门导航.md",
@@ -392,13 +394,228 @@ def load_settings() -> dict[str, Any]:
 def load_cache() -> dict[str, Any]:
     if CACHE_FILE.exists():
         return json.loads(CACHE_FILE.read_text(encoding="utf-8"))
-    return {"media": {}, "posts": {}, "template": {}}
+    return {"media": {}, "posts": {}, "template": {}, "sync": {"articles": {}}}
 
 
 def save_cache(cache: dict[str, Any]) -> None:
     # 母版仅存 .publish-template-cache.html，勿写入 json（易过期且体积大）
     slim = {k: v for k, v in cache.items() if k != "template"}
+    slim.setdefault("sync", {}).setdefault("articles", {})
     CACHE_FILE.write_text(json.dumps(slim, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+# YAML 字段：变更时通常不需要重新推送正文（或由发布流程自行回写）
+_SYNC_IGNORE_META = frozenset(
+    {
+        "status",
+        "wp_post_id",
+        "published_at",  # 旧字段，忽略
+        "revised_at",    # 旧字段，忽略
+        "revision_note",
+        "reviewed_by",
+        "erphpdown_blocks",
+    }
+)
+MD_HREF_RE = re.compile(r"\[([^\]]*)\]\(([^)]+\.md)(?:#[^)]*)?\)")
+
+
+def article_rel_key(md_path: Path) -> str:
+    return str(md_path.resolve().relative_to(PROJECT_ROOT))
+
+
+def content_fingerprint(md_path: Path) -> str:
+    """Hash of publish-relevant content (excludes status / wp_post_id bookkeeping)."""
+    raw = md_path.read_text(encoding="utf-8")
+    meta, body = parse_front_matter(raw)
+    parts = [body.strip(), ""]
+    for key in sorted(k for k in meta if k not in _SYNC_IGNORE_META):
+        parts.append(f"{key}={meta[key]}")
+    blob = "\n".join(parts).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()
+
+
+def resolve_md_href(md_path: Path, href: str) -> Path | None:
+    target = href.strip().split("#", 1)[0]
+    if not target.endswith(".md"):
+        return None
+    cand = (md_path.parent / target).resolve()
+    if cand.is_file():
+        return cand
+    return None
+
+
+def extract_outbound_md_targets(md_path: Path) -> list[Path]:
+    """Collect unique .md link targets outside code fences / inline code."""
+    raw = md_path.read_text(encoding="utf-8")
+    _, body = parse_front_matter(raw)
+    found: list[Path] = []
+    seen: set[str] = set()
+
+    def _scan(text: str) -> str:
+        for m in MD_HREF_RE.finditer(text):
+            target = resolve_md_href(md_path, m.group(2))
+            if target is None:
+                continue
+            key = article_rel_key(target)
+            if key not in seen:
+                seen.add(key)
+                found.append(target)
+        return text
+
+    run_outside_code(body, _scan)
+    return found
+
+
+def outbound_link_snapshot(md_path: Path, slug_map: dict[str, str] | None = None) -> dict[str, str | None]:
+    """Map outbound article rel-path → published slug (or None if still pending)."""
+    slug_map = slug_map if slug_map is not None else collect_published_slugs()
+    out: dict[str, str | None] = {}
+    for target in extract_outbound_md_targets(md_path):
+        key = article_rel_key(target)
+        out[key] = slug_map.get(key) or slug_map.get(target.name)
+    return out
+
+
+def get_sync_record(cache: dict[str, Any], md_path: Path) -> dict[str, Any]:
+    articles = cache.setdefault("sync", {}).setdefault("articles", {})
+    return dict(articles.get(article_rel_key(md_path)) or {})
+
+
+def update_sync_record(
+    cache: dict[str, Any],
+    md_path: Path,
+    *,
+    meta: dict[str, Any],
+    wp_post_id: int | None = None,
+    slug: str | None = None,
+) -> None:
+    """Persist fingerprint + outbound link resolution after a successful sync/publish."""
+    slug_map = collect_published_slugs()
+    if slug and meta.get("id"):
+        slug_map[str(meta["id"]).upper()] = slug
+        slug_map[md_path.name] = slug
+        slug_map[article_rel_key(md_path)] = slug
+    record = {
+        "id": meta.get("id"),
+        "content_hash": content_fingerprint(md_path),
+        "wp_post_id": int(wp_post_id or meta.get("wp_post_id") or 0) or None,
+        "slug": slug or meta.get("wp_slug") or slug_from_path(md_path),
+        "synced_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "outbound_links": outbound_link_snapshot(md_path, slug_map),
+    }
+    cache.setdefault("sync", {}).setdefault("articles", {})[article_rel_key(md_path)] = record
+
+
+def bootstrap_sync_cache(cache: dict[str, Any]) -> int:
+    """Seed sync fingerprints for already-published articles (no WP calls).
+
+    Records *current* outbound link resolution so a first ``--sync`` will not
+    mass-republish the whole library. Use ``--refresh-links`` for a one-shot
+    catch-up of historical pending links on WordPress.
+    """
+    n = 0
+    articles = cache.setdefault("sync", {}).setdefault("articles", {})
+    for path in iter_articles():
+        meta, _ = parse_front_matter(path.read_text(encoding="utf-8"))
+        if not meta.get("wp_post_id"):
+            continue
+        key = article_rel_key(path)
+        prev = articles.get(key) or {}
+        outs = prev.get("outbound_links")
+        # Repair earlier bootstrap that stamped every outbound as null.
+        all_null = isinstance(outs, dict) and outs and all(v is None for v in outs.values())
+        if key in articles and prev.get("content_hash") and not all_null:
+            continue
+        update_sync_record(cache, path, meta=meta, wp_post_id=int(meta["wp_post_id"]))
+        n += 1
+    return n
+
+
+def collect_sync_plan(
+    cache: dict[str, Any],
+    *,
+    refresh_links: bool = False,
+) -> tuple[list[tuple[Path, list[str]]], list[str]]:
+    """Decide which articles to push on --sync.
+
+    Returns (primary_candidates, notes). Link-backfill referrers are computed
+    after primary publishes succeed.
+    """
+    notes: list[str] = []
+    seeded = bootstrap_sync_cache(cache)
+    if seeded:
+        notes.append(f"已为 {seeded} 篇已上线文章写入 / 修复 sync 指纹（未推送 WP）")
+        save_cache(cache)
+
+    slug_map = collect_published_slugs()
+    articles = cache.get("sync", {}).get("articles", {})
+    primary: list[tuple[Path, list[str]]] = []
+
+    for path in iter_articles():
+        raw = path.read_text(encoding="utf-8")
+        meta, _ = parse_front_matter(raw)
+        status = str(meta.get("status") or "draft").strip()
+        has_wp = bool(meta.get("wp_post_id"))
+        key = article_rel_key(path)
+        prev = articles.get(key) or {}
+        reasons: list[str] = []
+
+        if status in PUBLISHABLE_STATUS and not has_wp:
+            reasons.append("new_reviewed")
+
+        fp = content_fingerprint(path)
+        if has_wp and status == "reviewed" and prev.get("content_hash") and prev["content_hash"] != fp:
+            reasons.append("content_changed")
+
+        if has_wp and status == "reviewed" and prev.get("outbound_links") is not None:
+            current = outbound_link_snapshot(path, slug_map)
+            prev_out = prev.get("outbound_links") or {}
+            for link_key, slug in current.items():
+                if slug and not prev_out.get(link_key):
+                    reasons.append(f"link_ready:{Path(link_key).name}")
+
+        if refresh_links and has_wp and status == "reviewed" and extract_outbound_md_targets(path):
+            reasons.append("refresh_links")
+
+        if reasons:
+            uniq: list[str] = []
+            for r in reasons:
+                if r not in uniq:
+                    uniq.append(r)
+            primary.append((path, uniq))
+
+    return primary, notes
+
+
+def collect_link_backfill(
+    cache: dict[str, Any],
+    newly_published: list[Path],
+    already_done: set[str],
+) -> list[tuple[Path, list[str]]]:
+    """Re-publish published referrers that link to articles just made available."""
+    if not newly_published:
+        return []
+    new_keys = {article_rel_key(p) for p in newly_published}
+    new_names = {p.name for p in newly_published}
+    backfill: list[tuple[Path, list[str]]] = []
+
+    for path in iter_articles():
+        key = article_rel_key(path)
+        if key in already_done:
+            continue
+        meta, _ = parse_front_matter(path.read_text(encoding="utf-8"))
+        if not meta.get("wp_post_id"):
+            continue
+        hit = False
+        for target in extract_outbound_md_targets(path):
+            tkey = article_rel_key(target)
+            if tkey in new_keys or target.name in new_names:
+                hit = True
+                break
+        if hit:
+            names = ", ".join(sorted(new_names))
+            backfill.append((path, [f"link_backfill←{names}"]))
+    return backfill
 
 
 def wp_session(cfg: dict[str, Any]) -> tuple[str, requests.Session]:
@@ -1196,7 +1413,6 @@ def run_image_sync(md_path: Path, *, dry_run: bool, prune_sources: bool = True) 
         md_path,
         dry_run=dry_run,
         rewrite_md=not dry_run,
-        move_from_inbox=True,
         prune_sources=prune_sources and not dry_run,
     )
     missing = [r for r in report["images"] if r["status"] == "missing"]
@@ -1229,7 +1445,7 @@ def publish_file(
         return {
             "file": str(md_path),
             "skipped": True,
-            "reason": f"status={local_status}，仅 reviewed / revised 可发布（加 --force 跳过）",
+            "reason": f"status={local_status}，仅 reviewed 可发布（加 --force 跳过）",
         }
 
     image_sync: dict[str, Any] | None = None
@@ -1246,10 +1462,6 @@ def publish_file(
         raw = md_path.read_text(encoding="utf-8")
 
     meta, body = parse_front_matter(raw)
-
-    if local_status == "revised" and not meta.get("wp_post_id"):
-        # 允许用 slug 查找，但给出提示
-        pass
 
     series_tags = parse_series_tags(body)
     strip_patterns = list(cfg["publish"].get("strip_patterns", []))
@@ -1374,9 +1586,6 @@ def publish_file(
     if existing is None:
         existing = find_post_by_slug(site, sess, slug)
 
-    if local_status == "revised" and existing is None:
-        raise ValueError("revised 文章需要已有 wp_post_id 或同 slug 的 WP 文章")
-
     if existing:
         # 默认整篇套用当前母版（行宽/间距随 650 更新）；--keep-layout 则只换正文 html 块
         if use_template and keep_layout:
@@ -1408,12 +1617,23 @@ def publish_file(
     if actual_slug and actual_slug != meta.get("wp_slug"):
         write_back_wp_slug(md_path, actual_slug)
 
+    # Re-read meta after possible write-back; record sync fingerprint for --sync.
+    meta_after, _ = parse_front_matter(md_path.read_text(encoding="utf-8"))
+    update_sync_record(
+        cache,
+        md_path,
+        meta=meta_after,
+        wp_post_id=int(post["id"]),
+        slug=actual_slug,
+    )
+    save_cache(cache)
+
     if post_status == "publish":
-        next_steps = "文章已在 WordPress 直接发布；请在后台确认 erphpdown 等设置，本地 YAML 可改 status=published"
+        next_steps = "已直接发布到 WordPress；请确认 erphpdown / 分类。本地保持 status=reviewed"
     elif post_status == "private":
         next_steps = "文章已同步为 private；请在 WP 后台确认"
     else:
-        next_steps = "WP 后台预览 draft → 配置 erphpdown → 人工发布 → 本地改 status=published"
+        next_steps = "已同步为 WP 草稿；后台预览 → 配置 erphpdown → 点发布。本地保持 status=reviewed"
 
     result.update(
         {
@@ -1473,6 +1693,22 @@ def main() -> None:
     parser.add_argument("--list", action="store_true", help="列出文章编号与标题")
     parser.add_argument("--pick", action="store_true", help="交互式选择文章")
     parser.add_argument("--all-reviewed", action="store_true", help="发布 content_root 下全部教程（仍受 status 门禁）")
+    parser.add_argument(
+        "--sync",
+        dest="sync",
+        action="store_true",
+        help="增量同步：新 reviewed / 内容有变；并在本轮新上线篇目后回填引用方站内链",
+    )
+    parser.add_argument(
+        "--sync-plan",
+        action="store_true",
+        help="只打印 --sync 将处理的篇目与原因，不请求 WordPress",
+    )
+    parser.add_argument(
+        "--refresh-links",
+        action="store_true",
+        help="一次性重推所有已上线且含站内 .md 链的文章（补历史「待发布」链；可与 --sync / --sync-plan 合用）",
+    )
     parser.add_argument("--dry-run", action="store_true", help="只转换，不请求 WordPress（图片不上传）")
     parser.add_argument("--force", action="store_true", help="忽略 YAML status 门禁")
     parser.add_argument(
@@ -1528,7 +1764,56 @@ def main() -> None:
 
     cfg = load_settings()
 
-    if args.all_reviewed:
+    sync_reasons: dict[str, list[str]] = {}
+    force_paths: set[str] = set()
+
+    if args.sync or args.sync_plan or args.refresh_links:
+        if args.all_reviewed or args.pick or args.file or args.articles or args.article_ids:
+            parser.error(
+                "--sync / --sync-plan / --refresh-links 不能与文章编号、--file、--pick、--all-reviewed 同时使用"
+            )
+        if args.refresh_links and not (args.sync or args.sync_plan):
+            # allow standalone --refresh-links as a sync-mode operation
+            args.sync = True
+        cache = load_cache()
+        primary, notes = collect_sync_plan(cache, refresh_links=args.refresh_links)
+        for note in notes:
+            print(f"[sync] {note}")
+        if not primary:
+            print("[sync] 无需推送（无新 reviewed / 内容变更 / 互链待回填）")
+            sys.exit(0)
+        paths = [p for p, _ in primary]
+        for path, reasons in primary:
+            sync_reasons[article_rel_key(path)] = reasons
+            # 内容变更 / 互链就绪：已有 wp_post_id 的 reviewed 再推一遍
+            if any(
+                r.startswith(("content_changed", "link_ready", "refresh_links"))
+                for r in reasons
+            ):
+                force_paths.add(article_rel_key(path))
+        print("[sync] 计划推送：")
+        for path, reasons in primary:
+            aid = parse_front_matter(path.read_text(encoding="utf-8"))[0].get("id") or "—"
+            print(f"  [{aid}] {path.name} — {', '.join(reasons)}")
+        if args.sync_plan:
+            # Preview link-backfill only for articles that will newly gain wp_post_id
+            preview_new = []
+            for path, reasons in primary:
+                meta = parse_front_matter(path.read_text(encoding="utf-8"))[0]
+                if not meta.get("wp_post_id") or "new_reviewed" in reasons:
+                    preview_new.append(path)
+            preview_bf = collect_link_backfill(
+                cache, preview_new, {article_rel_key(p) for p in paths}
+            )
+            if preview_bf:
+                print("[sync] 若上述成功，将追加互链回填：")
+                for path, reasons in preview_bf:
+                    aid = parse_front_matter(path.read_text(encoding="utf-8"))[0].get("id") or "—"
+                    print(f"  [{aid}] {path.name} — {', '.join(reasons)}")
+            else:
+                print("[sync] 预计无额外互链回填")
+            sys.exit(0)
+    elif args.all_reviewed:
         paths = collect_md_files()
     elif args.pick:
         try:
@@ -1553,7 +1838,9 @@ def main() -> None:
         if args.article_ids:
             id_tokens.extend(args.article_ids)
         if not id_tokens:
-            parser.error("请指定一篇或多篇文章编号、--file、--pick 或 --all-reviewed")
+            parser.error(
+                "请指定一篇或多篇文章编号、--file、--pick、--all-reviewed 或 --sync"
+            )
         try:
             paths = find_by_ids(id_tokens)
         except ValueError as e:
@@ -1561,19 +1848,28 @@ def main() -> None:
 
     exit_code = 0
     batch_results: list[dict[str, Any]] = []
-    for p in paths:
+    newly_published: list[Path] = []
+
+    def _run_one(p: Path, *, force: bool, reasons: list[str] | None = None) -> None:
+        nonlocal exit_code
         if not p.exists():
             print(f"跳过（不存在）: {p}")
             batch_results.append({"file": str(p), "skipped": True, "reason": "文件不存在"})
-            continue
-        print(f"处理: {p}")
+            return
+        why = f" ({', '.join(reasons)})" if reasons else ""
+        print(f"处理: {p}{why}")
+        had_wp = False
+        try:
+            had_wp = bool(parse_front_matter(p.read_text(encoding="utf-8"))[0].get("wp_post_id"))
+        except OSError:
+            pass
         try:
             res = publish_file(
                 p,
                 cfg,
                 dry_run=args.dry_run,
                 status_override=status_override,
-                force=args.force,
+                force=force or args.force,
                 strict_links=args.strict_links,
                 write_back_id=args.write_back_id,
                 sync_images=not args.skip_sync_images,
@@ -1582,10 +1878,16 @@ def main() -> None:
                 keep_layout=args.keep_layout,
                 guess_unpublished=args.guess_links,
             )
+            if reasons:
+                res["sync_reasons"] = reasons
             print(json.dumps(res, ensure_ascii=False, indent=2))
             batch_results.append(res)
             if res.get("skipped"):
-                continue
+                return
+            # 仅「本轮新获得 wp_post_id」的篇目触发引用方回填
+            if not args.dry_run and not res.get("error"):
+                if res.get("action") == "create" or not had_wp:
+                    newly_published.append(p)
         except (requests.HTTPError, ValueError) as e:
             exit_code = 1
             err = (
@@ -1594,7 +1896,25 @@ def main() -> None:
                 else str(e)
             )
             print(f"错误: {err}", file=sys.stderr)
-            batch_results.append({"file": str(p), "error": err})
+            batch_results.append({"file": str(p), "error": err, "sync_reasons": reasons or []})
+
+    for p in paths:
+        key = article_rel_key(p) if p.exists() else str(p)
+        _run_one(
+            p,
+            force=key in force_paths,
+            reasons=sync_reasons.get(key),
+        )
+
+    # --sync phase 2: republish referrers so pending links become clickable
+    if args.sync and newly_published and not args.dry_run:
+        done = {article_rel_key(p) for p in newly_published}
+        cache = load_cache()
+        backfill = collect_link_backfill(cache, newly_published, done)
+        if backfill:
+            print(f"\n[sync] 互链回填：{len(backfill)} 篇引用方将再次推送")
+            for path, reasons in backfill:
+                _run_one(path, force=True, reasons=reasons)
 
     print_batch_summary(batch_results)
     sys.exit(exit_code)

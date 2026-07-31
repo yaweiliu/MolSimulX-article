@@ -2,7 +2,7 @@
 
 MolSimulX **在线文章源仓库**：Markdown 正文、配图（WebP）、写作规范与发布到 WordPress 的脚本。面向内容作者 / 站点维护者，不是对外读者文档。
 
-读者视角的站内入口见 [在线资源/资源导航.md](在线资源/资源导航.md)。内部约定入口：[内容写作与发布手册.md](内容写作与发布手册.md)（拆为写作 / 发布 / 规划三份；**勿上传 WordPress**）。
+读者视角的站内入口见 [在线资源/资源导航.md](在线资源/资源导航.md)。内部约定：[写作规范.md](写作规范.md) · [发布与上线.md](发布与上线.md) · [内容规划.md](内容规划.md)（**勿上传 WordPress**）。
 
 ---
 
@@ -19,7 +19,6 @@ MolSimulX-article/
 ├── images/                   # 配图：归档后 …/original|web/（原图默认不入库）
 ├── downloads/                # 附件包（如 myenv.yml）
 ├── tools/                    # 配图整理、Markdown → WP 发布
-├── 内容写作与发布手册.md      # 入口索引
 ├── 写作规范.md · 发布与上线.md · 内容规划.md
 └── .env.local.example        # WP 账号模板（复制为 .env.local）
 ```
@@ -79,9 +78,11 @@ cp .env.local.example .env.local
 | 本地 `status` | 能否跑发布脚本 |
 |---------------|----------------|
 | `draft` | 否（除非 `--force`） |
-| `reviewed` | 是 → 新建 WP 草稿 |
-| `revised` | 是 → 更新已有 WP 草稿（需 `wp_post_id`） |
-| `published` | 否（本地标记已上线） |
+| `reviewed` | 是 → CREATE / UPDATE（有 `wp_post_id` 则更新） |
+
+本地只有这两种状态；**不要**写 `published` / `revised`。是否已上线看 WordPress。
+
+日常复制命令见 [发布与上线.md](发布与上线.md)；下文「发布详解」是完整说明。
 
 ---
 
@@ -91,30 +92,35 @@ cp .env.local.example .env.local
 
 ### 配图
 
+`sync_article_images.py`：按 md 引用找源图 → 归档 `…/original/` → 转 `…/web/*.webp`。常用：
+
 ```bash
-# 按文章引用归档 + 转 WebP + 回写 md 路径
-python tools/sync_article_images.py --id T01 --rewrite-md
-
-# 与发布一致：清理散落重复源图（original/ 仍保留在本地）
-python tools/sync_article_images.py --id T01 --rewrite-md --prune-sources
-
-# 仅预览
-python tools/sync_article_images.py --id T01 --dry-run
+python tools/sync_article_images.py T01 --rewrite-md --prune-sources
+python tools/sync_article_images.py T01 --dry-run
 ```
 
-约定：Markdown 最终引用 `images/articles/.../web/*.webp`；`images/**/original/` **不进 Git**（见 `.gitignore`）。细节见 [images/README.md](images/README.md)。
+| 参数 | 作用 |
+|------|------|
+| `T01` / `--id` / `--file` / `--pick` / `--all` | 选文章 |
+| `--rewrite-md` | 回写 md 为 `web/*.webp` 相对路径 |
+| `--prune-sources` | 删散落重复源图（保留 original/web） |
+| `--keep-sources` | 保留散落源图 |
+| `--dry-run` | 只报告不写入 |
+
+约定：最终引用 `images/articles/.../web/*.webp`；`images/**/original/` **不进 Git**。详见 [images/README.md](images/README.md)、[发布与上线.md](发布与上线.md)。
 
 ### 发布到 WordPress
 
 ```bash
 python tools/publish.py --list
-python tools/publish.py T01 --dry-run              # 只看转换结果，不上传
-python tools/publish.py T01 --write-back-id        # 同步为 WP 草稿，并回写 wp_post_id
+python tools/publish.py T01 --dry-run
+python tools/publish.py T01 --write-back-id
 python tools/publish.py T02 T03 T04 --write-back-id
-python tools/publish.py --pick                     # 交互选篇
+python tools/publish.py --sync --write-back-id     # 日常增量
+python tools/publish.py --pick
 ```
 
-默认写入 WP **draft**；确认无误后到后台点「发布」。加 `--publish` 才会直接上线（慎用）。更多参数与状态机见手册 **二、发布与上线**。
+默认写入 WP **draft**；确认无误后到后台点「发布」。加 `--publish` 才会直接上线（慎用）。
 
 ---
 
@@ -124,8 +130,109 @@ python tools/publish.py --pick                     # 交互选篇
 - [ ] 导语有场景钩子；写清「讲什么 / 不讲什么 / 姊妹篇」  
 - [ ] 互链用完整标题；路径相对当前目录正确  
 - [ ] 封面 / 插图走 `sync_article_images`，导语下不要解说「上图是……」  
-- [ ] 审完把 `status` 改为 `reviewed`（或已上线改 `revised`）再 `publish.py`  
-- [ ] 后台确认分类、VIP / 附件后，本地再标 `published`
+- [ ] 审完把 `status` 改为 `reviewed`，再 `publish.py`  
+- [ ] 后台确认分类、VIP / 附件后点「发布」；本地保持 `reviewed`
+
+---
+
+<a id="发布详解"></a>
+
+## 发布详解
+
+> 从原 [发布与上线.md](发布与上线.md) 迁出的完整约定；日常发文请优先复制该文件里的命令。
+
+### 状态工作流
+
+```text
+draft ──审完──► reviewed ── publish.py ──► WP（默认 draft，可 --publish）
+                 ▲                              │
+                 └──── 改稿后仍用 reviewed，再推 ──┘
+```
+
+| 阶段 | 本地 YAML | WordPress |
+|------|-----------|-----------|
+| 写作审阅 | `draft` | （无或旧版） |
+| 可同步 | `reviewed` | 脚本写入 **draft**（或 `--publish`） |
+| 正式上线 | 仍为 `reviewed` | 后台点「发布」或脚本已 `--publish` |
+| 改稿再推 | 仍为 `reviewed` | UPDATE 同 `wp_post_id` |
+
+有 `wp_post_id` 时脚本 **UPDATE**；没有则 **CREATE**。`--sync` 会挑：新 `reviewed`、正文相对上次推送有变、互链目标新近上线、以及引用方回填。
+
+### 文首 YAML
+
+新建请复制 [在线资源/_templates/新文章模板.md](在线资源/_templates/新文章模板.md)。
+
+```yaml
+---
+id: T01
+title: 分子模拟工作平台搭建
+series: 在线资源
+tier: 01-技术文档
+status: draft          # 审完改为 reviewed
+topic: 平台搭建
+paywall: free
+---
+```
+
+同步成功后可有（由 `--write-back-id` 写入）：
+
+```yaml
+wp_post_id: 1234
+wp_slug: 分子模拟工作平台搭建
+```
+
+旧字段 `published_at` / `revised_at` / `revision_note` 可删；脚本会忽略它们对内容指纹的影响。
+
+### paywall（四种，互斥）
+
+| YAML | 站点展示名 | 适用 |
+|------|------------|------|
+| `free` | 免费 | 全文公开 |
+| `vip` | VIP | 主体用 `[erphpdown]` 包全文 |
+| `download-vip` | VIP下载 | 正文免费；资源包 VIP 免下 |
+| `download-paid` | 付费下载 | 正文免费；资源包单独购，会员折扣 |
+
+勿在 WP 整篇勾「VIP 可见」；门禁只放在 `erphpdown` 块内。00/01 默认 `free`（少数进阶 `vip`）；02 有资源包用 `download-vip` / `download-paid`。
+
+### 站内互链
+
+- 源稿只用相对路径 `.md`；**不要**写 WordPress URL。  
+- 无 `wp_post_id` 的目标在线上显示为灰色「待发布」。  
+- 目标首次写入 `wp_post_id` 后，用 `--sync` 回填引用方，或重推引用文。  
+- 批量首发建议：被引文先发，或发完一轮后再 `--sync`。
+
+### 母版 650 与配图
+
+- 每次从 WP **实时读**母版 650 再注入正文；默认整篇重套母版（`--keep-layout` 则只换 HTML 块）。  
+- `publish.py` 默认跑配图同步并清理散落源图；保留散落源图用 `--keep-image-sources`。  
+- `images/**/original/` 不进 Git；线上用 `web/*.webp`。
+
+### 配置文件
+
+| 文件 | 用途 |
+|------|------|
+| `.env.local` | 站点 URL、账号、母版 ID（不进 git） |
+| `tools/publish.config.yaml` | 分类映射、Kadence meta、是否用母版 |
+| `tools/publish-cache.json` | 媒体 / slug / sync 指纹（自动生成） |
+
+### 检查清单
+
+- [ ] `status: reviewed`；YAML `id` / `paywall` 齐全  
+- [ ] `--write-back-id` 后确认有 `wp_post_id`  
+- [ ] WP 预览：母版、图片、erphpdown  
+- [ ] 人工发布或已用 `--publish`  
+- [ ] 改稿后仍 `reviewed`，`--sync` 或单篇重推  
+- [ ] VIP 资格不因 UPDATE 丢失；勿删文新建换 post ID；勿写坏 `[erphpdown]`
+
+### 栏目 → WP 分类
+
+| YAML `series` + `tier` | WP |
+|------------------------|-----|
+| `在线资源` + `00-知识文档` / `01-技术文档` / `02-实战案例` | 在线资源 → 对应二级 |
+| `在线工具` + `MDStudio` 等 | 在线工具 → 产品名 |
+| `解决方案` | 解决方案 |
+
+erphpdown 价格 / VIP 类型每篇在 WP 后台人工配置，脚本只保留短代码。
 
 ---
 
@@ -146,9 +253,9 @@ python tools/publish.py --pick                     # 交互选篇
 | 问题 | 文档 |
 |------|------|
 | 文风、禁止套话、互链、YAML | [写作规范.md](写作规范.md) |
-| `publish.py`、配图、status、paywall | [发布与上线.md](发布与上线.md) |
-| 编号总表、学习路径、待写；工具 / 实战 / ML 选题 | [内容规划.md](内容规划.md) |
+| 复制命令、快速部署 | [发布与上线.md](发布与上线.md) |
+| status / paywall / 互链 / 母版细节 | 本文「发布详解」 |
+| 编号总表、学习路径、待写 | [内容规划.md](内容规划.md) |
 | 读者阅读路径 | [在线资源/资源导航.md](在线资源/资源导航.md) |
-| 三份文档入口 | [内容写作与发布手册.md](内容写作与发布手册.md) |
 
 有问题可在 Issue 里说明文章编号（如 `T19`）与本地报错全文。

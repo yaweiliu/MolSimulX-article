@@ -316,7 +316,6 @@ def sync_article(
     *,
     dry_run: bool = False,
     rewrite_md: bool = False,
-    move_from_inbox: bool = True,
     prune_sources: bool = False,
 ) -> dict:
     raw = md_path.read_text(encoding="utf-8")
@@ -356,7 +355,8 @@ def sync_article(
         action = "skip"
         if src.resolve() != dest_original.resolve():
             if not dest_original.exists() or src.stat().st_mtime_ns > dest_original.stat().st_mtime_ns:
-                action = "move" if move_from_inbox and INBOX_DIR in src.parents else "copy"
+                # inbox 内移动归档；其它位置只复制（原路径留给 prune / 人工）
+                action = "move" if INBOX_DIR in src.parents else "copy"
                 if not dry_run:
                     dest_original.parent.mkdir(parents=True, exist_ok=True)
                     if action == "move":
@@ -441,7 +441,6 @@ def main() -> int:
     parser.add_argument("--all", action="store_true", help="处理 在线资源 下全部教程")
     parser.add_argument("--dry-run", action="store_true", help="只报告不写入")
     parser.add_argument("--rewrite-md", action="store_true", help="回写 md 为规范 web 相对路径")
-    parser.add_argument("--copy-only", action="store_true", help="始终复制，不从 inbox 移动")
     parser.add_argument(
         "--prune-sources",
         action="store_true",
@@ -493,7 +492,6 @@ def main() -> int:
             md_path,
             dry_run=args.dry_run,
             rewrite_md=args.rewrite_md,
-            move_from_inbox=not args.copy_only,
             prune_sources=prune_sources,
         )
         for row in report["images"]:
