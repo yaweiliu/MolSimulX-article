@@ -322,12 +322,3 @@ A：会改变 $m$ 与 $r_c$；若还坚持压缩率成套，则 $A$ 也要跟着
 - [Lammps安装简明教程](../01-技术文档/T20-Lammps安装简明教程.md) —— 本机装好再跑 DPD 冒烟  
 - [输运系数谱系](K21-输运系数谱系.md) —— 扩散 / 粘度要对齐时看清谱系  
 
----
-
-## 参考文献
-
-1. Groot, R. D.; Warren, P. B. Dissipative Particle Dynamics: Bridging the Gap between Atomistic and Mesoscopic Simulation. *J. Chem. Phys.* **1997**, *107* (11), 4423–4435. <https://doi.org/10.1063/1.474784>  
-2. Zhang, H.; Liu, Y.; et al. Direct Assembly of Vertically Oriented, Gold Nanorod Arrays. *Adv. Funct. Mater.* **2021**, *31* (6), 2006753. <https://doi.org/10.1002/adfm.202006753>  
-3. Wei, J.; Liu, Y.; Song, F. Coarse-Grained Simulation of the Translational and Rotational Diffusion of Globular Proteins by Dissipative Particle Dynamics. *J. Chem. Phys.* **2020**, *153* (23), 234902. <https://doi.org/10.1063/5.0025620>  
-4. Liu, Y.; Bernardi, S.; Widmer-Cooper, A. Stability of Pinned Surface Nanobubbles against Expansion: Insights from Theory and Simulation. *J. Chem. Phys.* **2020**, *153* (2), 024704. <https://doi.org/10.1063/5.0013223>
-
