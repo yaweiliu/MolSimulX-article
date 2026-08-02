@@ -1,0 +1,10 @@
+# created by msxbox
+tolerance 2.5
+seed -1
+filetype xyz
+output simbox.xyz
+
+structure rod_trans_pack.xyz
+  number 1
+  inside box -13.5000 -13.5000 -13.5000 13.5000 13.5000 13.5000
+end structure

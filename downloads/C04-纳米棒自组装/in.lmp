@@ -1,0 +1,115 @@
+# =============================================================================
+# 重叠球纳米棒自组装：刚体 + Langevin + Berendsen
+# -----------------------------------------------------------------------------
+# 体系：data.lmp（约 216 根棒 × 11 珠 = 2376 原子；molecule 区分棒）
+# 流程：最小化 → NVT 热化 → 低压 NPT 松弛 → 低压→高压加压（单向，无回程）
+# 对势：Mie 50–49（伪硬球）；棒内 exclude + fix rigid
+# 输出：热力学进 log.lammps；加压段全原子轨迹 result_atoms.lammpstrj
+# =============================================================================
+
+# ----- 可调参数 -----
+variable        rodL            equal   5.0             # 棒长 L（通信截断用）
+variable        mytemp          equal   1.0             # 目标温度（lj）
+variable        myrand          equal   4003            # RNG 种子
+variable        myPstart        equal   1.0             # 松弛 / 加压起点压
+variable        myPend          equal   3.0             # 加压终点压（单向）
+
+# 段长度（timestep = 0.005 τ）
+variable        nvt_steps       equal   100000          # NVT 热化
+variable        npt_eq_steps    equal   100000          # 低压 NPT 松弛
+variable        compress_steps  equal   5000000        # 低压 → 高压
+
+variable        dump_every      equal   10000
+variable        thermo_every    equal   1000
+variable        pdamp           equal   5.0             # Berendsen 压阻尼
+
+# ----- 基本设置 -----
+units           lj
+dimension       3
+boundary        p p p
+
+atom_style      full                                    # 与 data.lmp 一致
+
+pair_style      mie/cut  1.02040816327                  # rcut = (50/49)σ
+pair_modify     shift yes
+
+read_data       data.lmp
+
+mass            * 1
+pair_coeff      * *  1.0  1.0  50  49
+
+neighbor        0.3  bin
+neigh_modify    delay 0  every 1  check yes
+neigh_modify    exclude molecule/intra all              # 棒内珠不算对势
+
+# 刚体跨处理器：截断约 L/2
+variable        commcutoff      equal   ${rodL}/2.0+0.1
+comm_modify     mode single  cutoff  ${commcutoff}
+
+timestep        0.005
+
+# ----- 能量最小化 -----
+minimize        0.0  1.0e-8  1000  100000
+reset_timestep  0
+
+# ----- 分组 / 刚体 / 热浴（贯穿全程）-----
+group           rods    type  1
+
+fix             rigid   rods  rigid/small  molecule
+fix             lang    all   langevin  ${mytemp}  ${mytemp}  1.0  ${myrand}  zero yes
+
+# ----- 热力学（写入默认 log.lammps）-----
+thermo_style    custom  step  time  temp  press  pxx  pyy  pzz  lx  ly  lz  vol  density
+thermo_modify   flush yes
+thermo          ${thermo_every}
+
+# ----- 初速度 -----
+velocity        all  create  ${mytemp}  ${myrand}  rot yes  dist gaussian  mom yes
+
+write_data      result_atoms.data  nofix  nocoeff
+
+# =============================================================================
+# 1. NVT：刚体 + Langevin，盒边固定（热化 / 打散局部应力）
+# =============================================================================
+
+run             ${nvt_steps}
+
+# =============================================================================
+# 2. 低压 NPT：Berendsen iso @ myPstart（取向进一步松弛、密度贴近低压）
+# =============================================================================
+
+fix             press  all  press/berendsen  iso  ${myPstart}  ${myPstart}  ${pdamp}
+run             ${npt_eq_steps}
+
+reset_timestep  0
+write_data      result_atoms.eq.data  nofix  nocoeff
+
+# =============================================================================
+# 3. 加压生产：低压 → 高压（单向；P 在本段内从 myPstart 扫到 myPend）
+# =============================================================================
+
+unfix           press
+fix             press  all  press/berendsen  iso  ${myPstart}  ${myPend}  ${pdamp}
+
+# 全原子轨迹
+dump            mydump  all  custom  ${dump_every}  &
+                result_atoms.lammpstrj  id  mol  type  xsu  ysu  zsu
+dump_modify     mydump  sort id
+
+run             ${compress_steps}
+
+print           """
+Finished.
+  NVT:       ${nvt_steps} steps (fixed box)
+  NPT eq:    ${npt_eq_steps} steps @ P=${myPstart}
+  Compress:  ${compress_steps} steps, P=${myPstart} -> ${myPend} (one way)
+  Thermo:    log.lammps
+  Traj:      result_atoms.lammpstrj (compress segment)
+"""
+
+undump          mydump
+unfix           press
+unfix           lang
+unfix           rigid
+
+write_data      result_atoms.prod.data  nofix  nocoeff

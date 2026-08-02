@@ -25,7 +25,7 @@ paywall: free
 
 本文是 **Quickstart**：用一条故意做小的**乙醇体系**路径，大约 10–15 分钟走完「绘制 → 力场 → 装盒 → 测试」。学完能带走：该点哪些按钮、工作区里会出现哪些文件名、成功时右侧预览长什么样。各 Tab 与界面地图见 [MDStudio功能与界面总览](M03-MDStudio功能与界面总览.md)，左侧文件面板见 [MDStudio资源管理器](M04-MDStudio资源管理器.md)；**正式使用前务必了解 [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md)。**
 
-![MDStudio-demo-poster](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-hero-MDStudio-demo-poster.webp)
+![](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-hero-poster.webp)
 
 ---
 
@@ -35,7 +35,7 @@ paywall: free
 |----|------|
 | **分子** | 乙醇（画板绘制；或力场页直接用 SMILES） |
 | **力场** | GAFF2 + 电荷 AM1-BCC（快，适合入门） |
-| **盒子** | 约 **10** 个乙醇分子（约 90 原子，小体系好过一遍；与免费档装盒上限一致） |
+| **盒子** | 约 **10** 个乙醇分子（约 90 原子；免费档装盒上限是 **总原子 ≤ 100**，不是分子个数） |
 | **目标** | 10–15 分钟内走通；测试模拟跑完；可下载 `data.lmp` / `in.lmp` |
 | **不算什么** | 密度收敛、轨迹分析、正式生产采样 |
 
@@ -50,7 +50,7 @@ paywall: free
 3. 点击 **仅保存 mol**，产生 **ethanol.mol** 文件写入左侧工作区。
 4. 右侧可视化区自动展示 **ethanol.mol**；若没有，可单击该文件；双击可查看文件内容。
 
-![draw_ethanol](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-fig-draw_ethanol.webp)
+![](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-fig-draw_molecule.webp)
 
 ### 2. 力场生成：`.ff` + `.xyz`
 
@@ -63,26 +63,26 @@ paywall: free
    - **ethanol.ff**：分子力场（后续生成 Lammps 输入用）
 5. 右侧可视化区自动展示 **ethanol_ff.xyz**；颜色选 **charge** 可按电荷给原子着色；鼠标悬停某一原子，可查看其基本信息。
 
-![force_field](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-fig-force_field.webp)
+![](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-fig-force_field.webp)
 
 ### 3. 搭建盒子：三步
 
-1. 打开 **搭建盒子** Tab，勾选 **ethanol_ff.xyz**，个数设为 **10**，其他参数默认即可。
+1. 打开 **搭建盒子** Tab，勾选 **ethanol_ff.xyz**，份数设为 **10**，其他参数默认即可。
 2. 点击 **生成 Packmol**，得到 **pack.inp** 与 **ethanol_ff_pack.xyz**，供下一步 Packmol 装盒使用。（需要时打开 **pack.inp** 编辑，可改装盒设置。）
 3. 点击 **运行 Packmol**：后台读入 **pack.inp** 与 **ethanol_ff_pack.xyz**，生成 **simbox.xyz**；右侧可视化区自动展示装盒后的体系。
 4. 点击 **生成 Lammps**：用 **simbox.xyz** 以及对应的分子结构、力场文件，写出 **data.lmp** 与 **in.lmp**。（需要时打开 **in.lmp** 编辑，可改模拟控制；若工作区还有 **pair.lmp**，一般随 `in.lmp` 一并使用即可。）
 5. **data.lmp** 与 **in.lmp** 可下载，用于在本地或集群提交正式模拟。
 
-![simbox](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-fig-simbox.webp)
+![](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-fig-simbox.webp)
 
 ### 4. 测试模拟
 
-1. 打开 **测试模拟**，确认 **data.lmp** 显示已就绪。
+1. 打开 **测试模拟**，确认 **data.lmp**、**in.lmp** 显示已就绪；若 `in.lmp` 里有 `include pair.lmp`，还需 **pair.lmp** 就绪。
 2. 点击 **生成测试脚本**，生成 **in.test.lmp**；确认 **in.test.lmp** 显示已就绪。
 3. 点击 **运行测试模拟** 启动；绘图区会动态展示温度、压力、能量、密度等变化，完成后可视化区展示模拟轨迹。
 4. 测试模拟主要用于检查**能否稳定起步**、分子拓扑是否完整——验证流水线能跑，**不能**当作生产 MD。正式长跑请下载 `data.lmp` / `in.lmp`（及如有的 `pair.lmp`），到[本机或集群](../../在线资源/01-技术文档/T01-分子模拟工作平台搭建.md)继续算。
 
-![simtest](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-fig-simtest.webp)
+![](../../images/articles/在线工具/M01-Quickstart从画分子到测试模拟/web/M01-fig-simtest.webp)
 
 ---
 
@@ -101,7 +101,7 @@ paywall: free
 | Tab 提示开通会员 | 确认已登录；权益说明见 [MDStudio使用须知与限制](M02-MDStudio使用须知与限制.md) |
 | 力场失败 / 超时 | 分子是否过大；电荷是否仍为 AM1-BCC；打开任务日志看报错 |
 | 装盒提示下载 `run_packmol.sh` | 本案例把分子数保持约 10 再试；其它情形见须知 |
-| 测试模拟不能启动 | 确认 **data.lmp**、**in.test.lmp** 均显示就绪；仍不行再对照须知 |
+| 测试模拟不能启动 | 确认 **data.lmp**、**in.lmp**（及需要时的 **pair.lmp**）、**in.test.lmp** 均显示就绪；仍不行再对照须知 |
 | 右侧没有自动预览 | 在左侧工作区单击对应文件；双击可查看文本内容 |
 
 ---

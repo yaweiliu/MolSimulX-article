@@ -15,9 +15,9 @@ __pycache__/
 # 图片：只跟踪 web/（WebP）；original/ 原图留本地、不进仓库
 images/**/original/
 
-# 大体量仿真输出（本地自跑；不进仓库，避免 >2MB）
+# 大体量仿真输出（本地自跑；不进仓库）
 **/*.lammpstrj
-**/result_viscosity_correlate.dat
+**/result_*
 downloads/C03-*/**/*.zip
 
 # WordPress 发布（本地密钥与缓存）

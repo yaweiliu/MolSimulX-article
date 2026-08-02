@@ -18,7 +18,7 @@ erphpdown_blocks: 1
 
 本文详细介绍两个转换入口（LigParGen、ATB）、需要准备哪些文件、表单字段与命名规则、两条转换管线各自读取什么、单位如何换算、输出 `.ff` 的势函数样式，以及哪些内容**不会**被转换。这里的「转换」是把已有参数**平移**成 MolSimulX 格式，不重新计算电荷或原子类型。
 
-![force_field_transfer](../../images/articles/在线工具/M05-MDStudio力场转换/web/M05-hero-force_field_transfer.webp)
+![](../../images/articles/在线工具/M05-MDStudio力场转换/web/M05-hero-ff_convert.webp)
 
 ---
 
@@ -35,7 +35,7 @@ erphpdown_blocks: 1
 
 **与力场生成的区别**：力场生成（见 [MDStudio力场生成](M09-MDStudio力场生成.md)）是依据内置参数库现场分配原子类型与电荷；力场转换则**照搬** `.itp` 里已有的电荷、原子类型和键连参数，不重建拓扑、也不重算电荷。因此转换结果的质量完全取决于你上传的 `.itp`。
 
-转换是**同步**完成的：提交后立即在工作区写出文件并刷新资源管理器，不经过后台任务队列。
+转换仅限 **VIP**，并且是**同步**完成的：提交后立即在工作区写出文件并刷新资源管理器，不经过后台任务队列，也没有后台任务墙钟。
 
 ---
 
@@ -82,12 +82,12 @@ erphpdown_blocks: 1
 |-----------|----------|----------|
 | `[ atomtypes ]` | 类型名、质量、电荷、σ、ε | σ：nm → Å（×10）；ε：kJ/mol 保留 |
 | `[ atoms ]` | 序号、类型、原子名、电荷、质量 | — |
-| `[ bonds ]` | `r0`、`k` | `r0`：nm → Å（×10）；`k`：kJ/mol/nm² → /Å²（÷100） |
-| `[ angles ]` | `θ0`、`k` | 角度与角力常数保持不变 |
+| `[ bonds ]` | `r0`、`k` | 写为 `harm`；`r0`：nm → Å（×10）；`k`：kJ/mol/nm² → /Å²（÷100） |
+| `[ angles ]` | `θ0`、`k` | 写为 `harm`；角度与角力常数保持不变 |
 | `[ dihedrals ]` funct 3 | Ryckaert-Bellemans 系数 C0..C5 | 映射为 `nharmonic` |
 | `[ dihedrals ]` funct 4 | 离面角（improper） | 映射为 `four` |
 
-坐标从 `.gro` 读入并 nm → Å（×10）。二面角走 RB → `nharmonic` 换算（$A_i = (-1)^{i-1} C_{i-1}$，末尾极小系数截断）；funct 4 离面角写成 `four`，中心原子取第 3 个类型。输出 `.ff` 头部标注 `# charge_method opls`，键连参数按**力场类型**（非原子名）索引。
+坐标从 `.gro` 读入并 nm → Å（×10）。proper 二面角走 RB → `nharmonic` 换算（$A_i = (-1)^{i-1} C_{i-1}$，末尾极小系数截断）；funct 4 improper 写成 `four`，中心原子取第 3 个类型。`opls` 只是 XYZ 第二行与 `.ff` 头部的**电荷 / 来源标签**，不是这里写出的键、角或二面角势函数样式；键连参数按**力场类型**（非原子名）索引。
 
 > 只处理 OPLS-AA 常见导出：仅支持二面角 funct 3 / 4，不解析 `[ pairs ]`、`[ cmap ]`、其它 funct 或多 `moleculetype`。
 
@@ -106,7 +106,7 @@ ATB 的单分子 `.itp` **不含 `[ atomtypes ]`**，因此 LJ 参数从平台�
 | `[ dihedrals ]` funct 1（proper） | `four`（同一组多重项合并为 `four N ...`） |
 | `[ dihedrals ]` funct 2（improper） | `impharm`（中心原子重排到首位） |
 
-坐标从 `.pdb` 读入（Å，不变）。输出 `.ff` 头部标注 `# charge_method gromos`。
+坐标从 `.pdb` 读入（Å，不变）。ATB 的 G96 bond 平衡键长由 nm → Å（×10），四次键势力常数由 kJ/mol/nm⁴ → kJ/mol/Å⁴（÷10⁴）。输出 `.ff` 头部标注 `# charge_method gromos`。
 
 > ATB 的 `[ nonbond_params ]` 交叉项**不写入** `.ff`（装盒阶段按几何混合规则处理），`[ pairs ]` / `[ exclusions ]`（1-4 特殊缩放）也**不解析**。只覆盖 ATB 常见的 bond 2 / angle 2 / dihedral 1、2。
 
@@ -118,7 +118,7 @@ ATB 的单分子 `.itp` **不含 `[ atomtypes ]`**，因此 LJ 参数从平台�
 
 | 产物 | 内容 | 后续用途 |
 |------|------|----------|
-| `{name}.xyz` | 原子名与坐标（Å）；第二行引用 `{name}.ff` | 送入搭建盒子 / 可视化 |
+| `{name}.xyz` | 原子名、坐标（Å）与逐原子电荷；第二行引用 `{name}.ff` 并标明 `opls` / `gromos` 方法 | 送入搭建盒子 / 可视化 |
 | `{name}.ff` | 原子类型、质量、电荷、LJ 与键连参数（样式见上） | 与 `.xyz` 成对，供装盒写 Lammps |
 
 装盒时务必选**本次转换得到的这一对**，不要与仓库或力场生成的同名分子混用。转换后可在可视化区打开 `.xyz` 检查坐标与电荷是否合理。
@@ -127,7 +127,7 @@ ATB 的单分子 `.itp` **不含 `[ atomtypes ]`**，因此 LJ 参数从平台�
 
 ## 七、限制
 
-- **无单独的原子数上限**：转换本身不设原子数限制，但受工作区总配额约束。
+- **无单独的原子数上限**：转换本身不检查 `max_molecule_atoms`，但写入受每目录 **50 项**与 VIP 工作区 **200 MB** 配额约束。
 - **不经力场生成管线**：电荷、类型、键连均来自 `.itp`，转换器不做拓扑重建或电荷重算。
 
 ---
@@ -149,8 +149,8 @@ ATB 的单分子 `.itp` **不含 `[ atomtypes ]`**，因此 LJ 参数从平台�
 
 1. 力场转换有两个入口：LigParGen（`.gro`+`.itp`）与 ATB（`.pdb`+`.itp`），产物都是 `.xyz` + `.ff`。
 2. 它**平移**已有参数，不重算电荷或类型；成对文件必须来自同一次导出。
-3. LigParGen 走 OPLS（nm→Å、RB→nharmonic）；ATB 走 GROMOS（从内置非键表补 LJ，bond `gromos`/angle `cosinesq`）。
-4. 转换是同步的、无原子数上限；`[ pairs ]` / 交叉项等不写入。
+3. LigParGen 的 bond/angle 为 `harm`、proper RB 为 `nharmonic`、improper 为 `four`；`opls` 只是电荷 / 来源标签。ATB 走 GROMOS（从内置非键表补 LJ，bond `gromos`/angle `cosinesq`）。
+4. 转换是 VIP 同步操作，不入队、无墙钟，也不查单分子原子数；`[ pairs ]` / 交叉项等不写入。
 5. 拿到 `.xyz` + `.ff` 后直接进入搭建盒子。
 
 [/erphpdown]
