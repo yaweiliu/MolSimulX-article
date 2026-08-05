@@ -42,7 +42,7 @@ erphpdown_blocks: 1
 | 产物 | 阶段 | 保存内容 | 后续用途 |
 | --- | --- | --- | --- |
 | `pack.inp`、`*_pack.xyz` | ① | Packmol 输入脚本与各组分装盒坐标 | 送入 Packmol；可手改后复用 |
-| `simbox.xyz` | ② | 装盒后全体系坐标，**第二行（注释行）**写入 cell 信息 | 生成 Lammps；也可做可视化检查 |
+| `simbox.xyz` | ② | 装盒后全体系坐标，**第二行**（注释行）写入 cell 信息 | 生成 Lammps；也可做可视化检查 |
 | `data.lmp` | ③ | `atom_style full`：Masses、Atoms、键连 Coeffs 与拓扑 | Lammps 读取的体系数据 |
 | `in.lmp` | ③ | 单位、pair/kspace、minimize、MD 各阶段、dump、restart | Lammps 运行脚本 |
 | `pair.lmp` | ③（可选） | 全部或多数 `pair_coeff` | type 数多时被 `in.lmp` include |
@@ -270,7 +270,7 @@ Packmol 的输入脚本与各组分坐标。`pack.inp` 里每个物种一段 `st
 
 ### 9.2 `simbox.xyz`
 
-装盒后的全体系坐标，**第二行（XYZ comment line）**写入 cell 信息。可在可视化区检查是否有明显重叠、空腔或分子跑出盒子。生成 Lammps 前会校验其原子数与设定一致。
+装盒后的全体系坐标，**第二行**（XYZ comment line）写入 cell 信息。可在可视化区检查是否有明显重叠、空腔或分子跑出盒子。生成 Lammps 前会校验其原子数与设定一致。
 
 ### 9.3 `data.lmp`
 
@@ -298,7 +298,7 @@ fix npt  run 1000000# NPT 生产，收集轨迹
 
 ### 9.4.1 SHAKE 约束的来源
 
-`in.lmp` 里的 `fix ... shake`（若出现）**不是**平台凭经验加的，而是来自 `.ff`：当某些**键或角在 `.ff` 中被标为约束样式 `cons`（刚性约束）**时，程序收集这些键/角对应的 type 编号，写成：
+`in.lmp` 里的 `fix ... shake`（若出现）**不是**平台凭经验加的，而是来自 `.ff`：当某些键或角在 `.ff` 中被标为约束样式 **`cons`**（刚性约束）时，程序收集这些键/角对应的 type 编号，写成：
 
 ```text
 fix myshake all shake 0.0001 20 0 b <bond types> a <angle types>

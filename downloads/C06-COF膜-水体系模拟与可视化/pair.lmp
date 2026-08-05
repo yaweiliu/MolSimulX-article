@@ -1,0 +1,12 @@
+pair_coeff    1    1     0.146300     3.048121  # o
+pair_coeff    2    2     0.154500     3.279042  # nu
+pair_coeff    3    3     0.098800     3.315212  # c
+pair_coeff    4    4     0.098800     3.315212  # ca
+pair_coeff    5    5     0.098800     3.315212  # ce
+pair_coeff    6    6     0.016100     2.625479  # ha
+pair_coeff    7    7     0.016100     2.536389  # h4
+pair_coeff    8    8     0.010000     1.106496  # hn
+pair_coeff    9    9     0.061400     4.058400  # s6
+pair_coeff   10   10     0.000000     0.000000  # Hw
+pair_coeff   11   11     0.155300     3.166000  # Ow
+pair_coeff   12   12     0.352642     2.159538  # Na

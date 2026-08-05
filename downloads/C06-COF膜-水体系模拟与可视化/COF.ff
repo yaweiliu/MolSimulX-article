@@ -1,0 +1,245 @@
+# Generated from COF.cif
+# charge_method mmff94
+# ff_format 2
+# Summary: 81 atoms, 9 atom_types, 81 charge_sites, 11 bonds, 16 angles, 16 dihedrals, 6 impropers, 87 connect
+
+ATOMS
+o      o       16.000     0.000000  lj   3.048121  0.612119
+nu     nu      14.010     0.000000  lj   3.279042  0.646428
+c      c       12.010     0.000000  lj   3.315212  0.413379
+ca     ca      12.010     0.000000  lj   3.315212  0.413379
+ce     ce      12.010     0.000000  lj   3.315212  0.413379
+ha     ha       1.008     0.000000  lj   2.625479  0.067362
+h4     h4       1.008     0.000000  lj   2.536389  0.067362
+hn     hn       1.008     0.000000  lj   1.106496  0.041840
+s6     s6      32.060     0.000000  lj   4.058400  0.256898
+
+CHARGES
+O0        -0.569996  o
+O1        -0.569996  o
+O2        -0.569996  o
+O3        -0.569996  o
+O4        -0.569996  o
+O5        -0.569996  o
+N6        -0.599996  nu
+N7        -0.599996  nu
+N8        -0.599996  nu
+N9        -0.599996  nu
+N10       -0.599996  nu
+N11       -0.599996  nu
+C12        0.541204  c
+C13        0.541204  c
+C14        0.541204  c
+C15        0.541204  c
+C16        0.541204  c
+C17        0.541204  c
+C18        0.028804  ca
+C19        0.028804  ca
+C20        0.028804  ca
+C21        0.028804  ca
+C22        0.028804  ca
+C23        0.028804  ca
+C24       -0.049996  ce
+C25       -0.049996  ce
+C26       -0.049996  ce
+C27       -0.049996  ce
+C28       -0.049996  ce
+C29       -0.049996  ce
+C30        0.100004  ca
+C31        0.100004  ca
+C32        0.100004  ca
+C33        0.100004  ca
+C34        0.100004  ca
+C35        0.100004  ca
+C36       -0.149996  ca
+C37       -0.149996  ca
+C38       -0.149996  ca
+C39       -0.149996  ca
+C40       -0.149996  ca
+C41       -0.149996  ca
+C42       -0.149996  ca
+C43       -0.149996  ca
+C44       -0.149996  ca
+C45       -0.008996  ca
+C46       -0.008996  ca
+C47       -0.008996  ca
+H48        0.150004  ha
+H49        0.150004  ha
+H50        0.150004  ha
+H51        0.150004  ha
+H52        0.150004  ha
+H53        0.150004  ha
+H54        0.150004  h4
+H55        0.150004  h4
+H56        0.150004  h4
+H57        0.150004  h4
+H58        0.150004  h4
+H59        0.150004  h4
+H60        0.150004  ha
+H61        0.150004  ha
+H62        0.150004  ha
+H63        0.400004  hn
+H64        0.400004  hn
+H65        0.400004  hn
+H66        0.400004  hn
+H67        0.400004  hn
+H68        0.400004  hn
+S69        1.459004  s6
+O70       -0.816696  o
+O71       -0.816696  o
+O72       -0.816696  o
+S73        1.459004  s6
+O74       -0.816696  o
+O75       -0.816696  o
+O76       -0.816696  o
+S77        1.459004  s6
+O78       -0.816696  o
+O79       -0.816696  o
+O80       -0.816720  o
+
+BONDS
+o        c         harm   1.2190     4942.14
+c        ca        harm   1.4907     2199.45
+ce       h4        cons   1.0914     2948.97
+ca       ce        harm   1.4800     2274.84
+s6       o         harm   1.4657     5142.05
+nu       hn        cons   1.0137     3953.80
+ca       ha        cons   1.0860     3018.25
+nu       ce        harm   1.4007     2621.19
+ca       s6        harm   1.8294     1591.09
+nu       ca        harm   1.3944     2677.09
+ca       ca        harm   1.3986     2964.36
+
+ANGLES
+ca       nu       hn        harm   114.73      480.83
+ce       nu       hn        harm   115.00      478.40
+ce       nu       ca        harm   127.86      638.48
+o        c        ca        harm   122.60      652.37
+ca       c        ca        harm   117.93      504.34
+c        ca       c         harm   120.00      539.74
+c        ca       ce        harm   120.00      539.74  # [guess] (near c-ca-c (tier 2))
+ca       ce       h4        harm   117.15      362.17
+nu       ce       h4        harm   115.06      406.27
+nu       ce       ca        harm   117.04      555.30
+nu       ca       ca        harm   120.74      564.76
+ca       ca       ca        harm   120.02      532.79
+ca       ca       ha        harm   119.88      375.72
+ca       ca       s6        harm   120.36      516.81
+o        s6       o         harm   120.21     1326.33
+ca       s6       o         harm   104.11     1011.69
+
+DIHEDRALS
+ce       nu       ca       ca        four  1    0.5021  2.0000    180.0000  # [guess] (near c2-nu-ca-ca (tier 3))
+ca       ce       nu       ca        four  1    3.3472  2.0000    180.0000  # [guess] (near ca-ca-nu-ca (tier 3))
+o        c        ca       c         four  1    4.1840  2.0000    180.0000
+o        c        ca       ce        four  1    4.1840  2.0000    180.0000
+c        ca       c        ca        four  1    4.1840  2.0000    180.0000
+ca       c        ca       ce        four  1    4.1840  2.0000    180.0000
+nu       ce       ca       c         four  1    4.5919  2.0000    180.0000  # [guess] (near ca-ca-ce-na (tier 3))
+nu       ca       ca       ha        four  1   15.1670  2.0000    180.0000
+nu       ca       ca       ca        four  1   15.1670  2.0000    180.0000
+ca       ca       ca       ha        four  1   15.1670  2.0000    180.0000
+ca       ca       ca       ca        four  1   15.1670  2.0000    180.0000
+nu       ca       ca       s6        four  1   15.1670  2.0000    180.0000
+ca       ca       ca       s6        four  1   15.1670  2.0000    180.0000
+ha       ca       ca       s6        four  1   15.1670  2.0000    180.0000
+ha       ca       ca       ha        four  1   15.1670  2.0000    180.0000
+ca       ca       s6       o         four  1    5.4392  2.0000    180.0000
+
+IMPROPER
+o        ca       c        ca        four  1   43.9320  2.0000    180.0000
+c        c        ca       ce        four  1    4.6024  2.0000    180.0000  # [guess] (near ca-c-ca-c3 (tier 2))
+nu       ca       ca       ca        four  1    4.6024  2.0000    180.0000  # [guess] (near ca-ca-na-c3 (tier 2))
+ha       ca       ca       ca        four  1    4.6024  2.0000    180.0000
+s6       ca       ca       ca        four  1    4.6024  2.0000    180.0000  # [guess] (geometry phi=180.0)
+ca       ca       ca       s6        four  1    4.6024  2.0000      0.0000  # [guess] (geometry phi=0.0)
+
+CONNECT
+C12    C18    ar   # c-ca
+C12    C20    ar   # c-ca
+C12    O0     2    # c-o
+C13    C18    ar   # c-ca
+C13    C19    ar   # c-ca
+C13    O1     2    # c-o
+C14    C19    ar   # c-ca
+C14    C20    ar   # c-ca
+C14    O2     2    # c-o
+C15    C21    ar   # c-ca
+C15    C23    ar   # c-ca
+C15    O3     2    # c-o
+C16    C21    ar   # c-ca
+C16    C22    ar   # c-ca
+C16    O4     2    # c-o
+C17    C22    ar   # c-ca
+C17    C23    ar   # c-ca
+C17    O5     2    # c-o
+C18    C24    ar   # ca-ce
+C19    C25    ar   # ca-ce
+C20    C26    ar   # ca-ce
+C21    C27    ar   # ca-ce
+C22    C28    ar   # ca-ce
+C23    C29    ar   # ca-ce
+C24    H54    1    # ce-h4
+C24    N6     1    # ce-nu
+C25    H55    1    # ce-h4
+C25    N7     1    # ce-nu
+C26    H56    1    # ce-h4
+C26    N8     1    # ce-nu
+C27    H57    1    # ce-h4
+C27    N9     1    # ce-nu
+C28    H58    1    # ce-h4
+C28    N10    1    # ce-nu
+C29    H59    1    # ce-h4
+C29    N11    1    # ce-nu
+C30    C36    ar   # ca-ca
+C30    C42    ar   # ca-ca
+C30    N6     1    # ca-nu
+C31    C37    ar   # ca-ca
+C31    C43    ar   # ca-ca
+C31    N7     1    # ca-nu
+C32    C38    ar   # ca-ca
+C32    C44    ar   # ca-ca
+C32    N8     1    # ca-nu
+C33    C39    ar   # ca-ca
+C33    C45    ar   # ca-ca
+C33    N9     1    # ca-nu
+C34    C40    ar   # ca-ca
+C34    C46    ar   # ca-ca
+C34    N10    1    # ca-nu
+C35    C41    ar   # ca-ca
+C35    C47    ar   # ca-ca
+C35    N11    1    # ca-nu
+C36    C45    ar   # ca-ca
+C36    H48    1    # ca-ha
+C37    C46    ar   # ca-ca
+C37    H49    1    # ca-ha
+C38    C47    ar   # ca-ca
+C38    H50    1    # ca-ha
+C39    C42    ar   # ca-ca
+C39    H51    1    # ca-ha
+C40    C43    ar   # ca-ca
+C40    H52    1    # ca-ha
+C41    C44    ar   # ca-ca
+C41    H53    1    # ca-ha
+C42    H60    1    # ca-ha
+C43    H61    1    # ca-ha
+C44    H62    1    # ca-ha
+C45    S69    1    # ca-s6
+C46    S73    1    # ca-s6
+C47    S77    1    # ca-s6
+H63    N6     1    # hn-nu
+H64    N7     1    # hn-nu
+H65    N8     1    # hn-nu
+H66    N9     1    # hn-nu
+H67    N10    1    # hn-nu
+H68    N11    1    # hn-nu
+O70    S69    1    # o-s6
+O71    S69    1    # o-s6
+O72    S69    1    # o-s6
+O74    S73    1    # o-s6
+O75    S73    1    # o-s6
+O76    S73    1    # o-s6
+O78    S77    1    # o-s6
+O79    S77    1    # o-s6
+O80    S77    1    # o-s6
+

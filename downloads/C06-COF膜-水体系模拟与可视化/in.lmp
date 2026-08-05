@@ -1,0 +1,122 @@
+# =============================================================================
+# C06 · COF 膜–水–Na 短程平衡（~501 ps）
+# -----------------------------------------------------------------------------
+# 体系：data.lmp（五层磺酸 COF + 1000 SPC/E + 30 Na；pair.lmp）
+# 流程：最小化 → NVT 预松弛（0.5 fs × 5000 ≈ 2.5 ps）→ NVT 100 ps → NPT(z) 400 ps
+#       （部分键角与力场平衡角差较大，先用小步长让高力缓和，再恢复 1 fs）
+# 约束：骨架 C/N（type 2–5）fix spring/self（同 C05；仍可动并进全体热浴）
+# 控压：仅 z 方向（膜面 xy 固定）；热浴 / NPT 挂 all；thermo 记录 T、pzz、lz
+# 输出：log.lammps；NPT 段轨迹 result_atoms.lammpstrj；eq / final data
+# =============================================================================
+
+# ----- 可调参数 -----
+variable        myrand          equal   58938
+variable        mytemp          equal   300.0           # [K]
+variable        mypress         equal   1.0             # [atm]，仅 z
+variable        tdamp           equal   100.0           # [fs]
+variable        pdamp           equal   1000.0          # [fs]
+variable        Kspring         equal   100.0           # spring/self [kcal/mol/A^2]
+
+# 段长度
+variable        nvt_pre_steps   equal   5000            # 0.5 fs × 5000 ≈ 2.5 ps 预松弛
+variable        nvt_steps       equal   100000          # NVT 100 ps（timestep = 1 fs）
+variable        npt_steps       equal   400000          # NPT(z) 400 ps
+variable        thermo_every    equal   1000
+variable        dump_every      equal   5000            # 5 ps @ 1 fs
+
+# ----- 基本设置 -----
+units           real
+boundary        p p p
+
+atom_style      full
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  fourier
+
+special_bonds   lj 0.0 0.0 0.5 coul 0.0 0.0 0.8333
+pair_style      lj/cut/coul/cut  12.0  12.0
+pair_modify     mix arithmetic  shift yes
+#kspace_style    pppm  1.0e-5
+
+read_data       data.lmp
+include         pair.lmp
+
+neighbor        2.0  bin
+neigh_modify    delay 0  every 1  check yes
+
+# ----- 能量最小化（最小化时冻住 COF，只放松水 / Na）-----
+group           cof  type  1  2  3  4  5  6  7  8  9
+fix             freecof  cof  setforce  0  0  0
+minimize        0.0  1.0e-8  1000  100000
+unfix           freecof
+reset_timestep  0
+
+# SPC/E：Ow–Hw（bond 12）+ H–O–H（angle 17）；COF 含 H 键 5/7/9 一并 SHAKE
+# 注意：SO3 的 s6-o 勿缺键，否则未成键 O 会在第 1 步被斥飞 → Bond atoms missing
+fix             myshake  all  shake  0.0001  20  0  b  5  7  9  12  
+
+# ----- 分组：骨架 C/N 弹簧钉扎（仍参与热浴 / 积分，可动）-----
+# type：2=N(nu), 3–5=C；水 Hw/Ow=10/11，Na=12。若 data.lmp 编号不同请改
+group           backbone  type  2  3  4  5
+fix             pinbb  backbone  spring/self  ${Kspring}
+
+# ----- 热力学 -----
+thermo_style    custom  step  time  temp  press  pzz  lx  ly  lz  density
+thermo_modify   flush yes
+thermo          ${thermo_every}
+
+# ----- 初速度 -----
+velocity        all  create  ${mytemp}  ${myrand}  dist gaussian  mom yes  rot yes
+
+write_data      result_atoms.data  nofix
+
+# =============================================================================
+# 0. NVT 预松弛：0.5 fs × 5000（≈ 2.5 ps）
+#    部分键角（如 -SO3 的 O–S–O）与平衡角差较大，小步长先缓和高力
+# =============================================================================
+
+timestep        0.5                                      # [fs]
+fix             mynvt  all  nvt  temp  ${mytemp}  ${mytemp}  ${tdamp}
+run             ${nvt_pre_steps}
+unfix           mynvt
+
+# =============================================================================
+# 1. NVT 100 ps（恢复 1 fs；盒边固定；全体热浴；骨架 spring/self）
+# =============================================================================
+
+timestep        1.0                                     # [fs]
+fix             mynvt  all  nvt  temp  ${mytemp}  ${mytemp}  ${tdamp}
+run             ${nvt_steps}
+unfix           mynvt
+
+# =============================================================================
+# 2. NPT(z) 400 ps @ 1 atm（仅 z 耦合；xy 边长不变；全体热浴）
+# =============================================================================
+
+reset_timestep  0
+write_data      result_atoms.eq.data  nofix
+
+dump            mydump  all  custom  ${dump_every}  &
+                result_atoms.lammpstrj  id  mol  type  xsu  ysu  zsu
+dump_modify     mydump  sort id
+
+fix             mynpt  all  npt  temp  ${mytemp}  ${mytemp}  ${tdamp}  &
+                z  ${mypress}  ${mypress}  ${pdamp}
+run             ${npt_steps}
+
+print           """
+Finished C06 short equilibration.
+  NVT pre: ${nvt_pre_steps} steps @ 0.5 fs (~2.5 ps), then timestep → 1 fs
+  NVT:     ${nvt_steps} steps (100 ps), fixed box, thermostat on all
+  NPT(z):  ${npt_steps} steps (400 ps) @ Pz=${mypress} atm, T=${mytemp} K, all
+  Spring:  backbone type 2 3 4 5, K=${Kspring} (atoms still mobile)
+  Thermo:  log.lammps (temp, press, pzz, lz, ...)
+  Traj:    result_atoms.lammpstrj (NPT segment, every ${dump_every} steps)
+"""
+
+undump          mydump
+unfix           mynpt
+unfix           pinbb
+unfix           myshake
+
+write_data      result_atoms.final.data  nofix

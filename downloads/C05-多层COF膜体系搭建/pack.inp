@@ -1,0 +1,37 @@
+tolerance 2.5
+seed -1
+filetype xyz
+output simbox.xyz
+
+# 五层 COF：沿 z 间隔 3.4 Å；奇偶层绕 z 交替旋转 π（≈180°），减轻 AA 磺酸重叠
+# 文件名以搭建盒子 ① 生成的 *_pack.xyz 为准（本例为 COF_ff_trans_trans_pack.xyz）
+# fixed x y z  α β γ  → 后三个为绕 x/y/z 的转角，单位是弧度（不是度）
+structure COF_ff_trans_trans_pack.xyz
+  number 1
+  center
+  fixed 0. 0. -6.8  0 0 0
+end structure
+
+structure COF_ff_trans_trans_pack.xyz
+  number 1
+  center
+  fixed 0. 0. -3.4  0 0 3.141593
+end structure
+
+structure COF_ff_trans_trans_pack.xyz
+  number 1
+  center
+  fixed 0. 0.  0.0  0 0 0
+end structure
+
+structure COF_ff_trans_trans_pack.xyz
+  number 1
+  center
+  fixed 0. 0.  3.4  0 0 3.141593
+end structure
+
+structure COF_ff_trans_trans_pack.xyz
+  number 1
+  center
+  fixed 0. 0.  6.8  0 0 0
+end structure
