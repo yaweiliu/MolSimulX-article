@@ -1,0 +1,20 @@
+# created by msxbox
+tolerance 2.5
+seed -1
+filetype xyz
+output simbox.xyz
+
+structure Mg_pack.xyz
+  number 2
+  inside box -18.7500 -18.7500 -18.7500 18.7500 18.7500 18.7500
+end structure
+
+structure Cl_pack.xyz
+  number 4
+  inside box -18.7500 -18.7500 -18.7500 18.7500 18.7500 18.7500
+end structure
+
+structure spce_pack.xyz
+  number 800
+  inside box -18.7500 -18.7500 -18.7500 18.7500 18.7500 18.7500
+end structure
