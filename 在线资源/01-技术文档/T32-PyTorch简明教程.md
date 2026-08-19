@@ -1,5 +1,5 @@
 ---
-id: T25
+id: T32
 title: PyTorch简明教程
 series: 在线资源
 tier: 技术文档
@@ -11,7 +11,7 @@ paywall: vip-partial
 
 > **发布说明：** 部分 VIP 可见。WordPress 发布时自「二、」节起用 `[erphpdown]`（VIP 类型）包裹；「一、」与「学习路径」免费预览。
 
-**PyTorch** 是 Python 主流的**深度学习框架**，支持 GPU 加速与自动求导。在分子模拟领域，它用于**神经网络势**、**图神经网络**（GNN）性质预测、以及将模拟数据拟合为复杂非线性映射等。经典表格 ML 请用 [scikit-learn简明教程](T24-scikit-learn简明教程.md)；本文介绍 PyTorch **最小必备**，便于后续 ML 势与 GNN 专题。
+**PyTorch** 是 Python 主流的**深度学习框架**，支持 GPU 加速与自动求导。在分子模拟领域，它用于**神经网络势**、**图神经网络**（GNN）性质预测、以及将模拟数据拟合为复杂非线性映射等。经典表格 ML 请用 [scikit-learn简明教程](T31-scikit-learn简明教程.md)；本文介绍 PyTorch **最小必备**，便于后续 ML 势与 GNN 专题。
 
 环境：**`myenv-ml`**（含 `torch`）；配置见 [机器学习与分子模拟导引](T30-机器学习与分子模拟导引.md)。
 
@@ -338,8 +338,8 @@ np.random.seed(42)
 **前置阅读：**
 
 - [机器学习与分子模拟导引](T30-机器学习与分子模拟导引.md)
-- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md)
-- [scikit-learn简明教程](T24-scikit-learn简明教程.md)（建议先读）
+- [Python科学计算简明教程](T21-Python科学计算简明教程.md)
+- [scikit-learn简明教程](T31-scikit-learn简明教程.md)（建议先读）
 
 **下一步：**
 

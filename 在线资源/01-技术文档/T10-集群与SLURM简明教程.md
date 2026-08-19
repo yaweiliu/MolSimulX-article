@@ -297,10 +297,10 @@ which qsub      # 有输出 → PBS 系
     ↓ rsync / git pull（本地与集群文件传输）
 集群：sbatch 跑 Lammps
     ↓ rsync 拉回轨迹，或在计算节点分析
-本地 / Jupyter：MDAnalysis 画图（NumPy与Matplotlib简明教程）
+本地 / Jupyter：MDAnalysis 画图（Python科学计算简明教程）
 ```
 
-环境见 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)；画图见 [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md)。
+环境见 [分子模拟工作平台搭建](T01-分子模拟工作平台搭建.md)；画图见 [Python科学计算简明教程](T21-Python科学计算简明教程.md)。
 
 ---
 
@@ -355,5 +355,6 @@ which qsub      # 有输出 → PBS 系
 **下一步：**
 
 - [本地与集群文件传输](T09-本地与集群文件传输.md) —— 轨迹怎么来回搬
-- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md) —— 分析跑完的数据
+- [Python科学计算简明教程](T21-Python科学计算简明教程.md) —— thermo / 数组出图
+- [MDAnalysis轨迹分析入门](T22-MDAnalysis轨迹分析入门.md) —— 读 dump、算 RDF
 - `02-实战案例` 目录下的端到端案例（陆续更新）

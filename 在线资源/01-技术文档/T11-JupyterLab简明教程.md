@@ -459,5 +459,6 @@ Mac 用户：`Ctrl` 换为 `Command`（如 `Cmd + Enter` 运行并停留）。
 
 - [Markdown简明教程](T12-Markdown简明教程.md) —— Notebook 文档化
 - [Jupyter Notebook科研使用规范](T16-Jupyter Notebook科研使用规范.md)
-- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md)
+- [Python科学计算简明教程](T21-Python科学计算简明教程.md)
+- [MDAnalysis轨迹分析入门](T22-MDAnalysis轨迹分析入门.md) —— Notebook 里读轨迹
 - [VSCode与Cursor简明教程](T06-VSCode与Cursor简明教程.md) —— 在编辑器中打开 Notebook

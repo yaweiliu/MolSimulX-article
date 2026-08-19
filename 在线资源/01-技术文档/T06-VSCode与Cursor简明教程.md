@@ -441,4 +441,5 @@ python -m ipykernel install --user --name myenv --display-name "Python (myenv)"
 - [JupyterLab简明教程](T11-JupyterLab简明教程.md)
 - [VSCode与Cursor远程连接集群](T07-VSCode与Cursor远程连接集群.md)
 - [集群与SLURM简明教程](T10-集群与SLURM简明教程.md)
-- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md)
+- [Python科学计算简明教程](T21-Python科学计算简明教程.md)
+- [MDAnalysis轨迹分析入门](T22-MDAnalysis轨迹分析入门.md) —— Notebook 里读轨迹

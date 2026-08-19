@@ -359,4 +359,4 @@ MolSimulX 平台线里，`.md` 和 `.py` 一样在编辑器里改：
 
 - [Obsidian知识库搭建](T13-Obsidian知识库搭建.md)
 - [LaTeX与Overleaf简明教程](T14-LaTeX与Overleaf简明教程.md)
-- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md) —— 图注可写在 Markdown 单元格
+- [Python科学计算简明教程](T21-Python科学计算简明教程.md) —— 图注可写在 Markdown 单元格

@@ -596,6 +596,9 @@ A：可以找社区/官方的 Windows 构建，但与集群 Linux 环境不一�
 - [科研项目目录结构规范](T15-科研项目目录结构规范.md) —— `lammps/` 放哪  
 - [本地与集群文件传输](T09-本地与集群文件传输.md) —— 同步 `in`、自编 `bin` 与拉回 `log`  
 - [分子动力学模拟概述](../00-知识文档/K02-分子动力学模拟概述.md) —— 概念侧巩固  
-- [ASE结构构建入门](../01-技术文档/T23-ASE结构构建入门.md) —— 生成结构对接 Lammps  
+- [MDStudio](https://mdstudio.molsimulx.com) —— 搭结构 / 力场 / 装盒（默认）  
+- [ASE结构构建入门](T23-ASE结构构建入门.md) —— 仅复杂几何时本机脚本  
+- [MDAnalysis轨迹分析入门](T22-MDAnalysis轨迹分析入门.md) —— 读 dump、算 RDF  
+- [分子动力学模拟概述](../00-知识文档/K02-分子动力学模拟概述.md) —— 概念侧巩固  
 
 官方手册：[docs.lammps.org](https://docs.lammps.org/) · [Build](https://docs.lammps.org/Build.html) · [Packages](https://docs.lammps.org/Packages.html) · [Build extras](https://docs.lammps.org/Build_extras.html) · [Modify](https://docs.lammps.org/Modify.html) · [GPU](https://docs.lammps.org/Speed_gpu.html) · [KOKKOS](https://docs.lammps.org/Speed_kokkos.html)

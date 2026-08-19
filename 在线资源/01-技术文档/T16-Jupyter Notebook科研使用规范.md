@@ -269,4 +269,5 @@ Kernel 不是 `myenv`；或在当前环境 `mamba install 缺的包`。
 **下一步：**
 
 - [从模拟到论文图的工作流](T18-从模拟到论文图的工作流.md)
-- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md)
+- [Python科学计算简明教程](T21-Python科学计算简明教程.md)
+- [MDAnalysis轨迹分析入门](T22-MDAnalysis轨迹分析入门.md)

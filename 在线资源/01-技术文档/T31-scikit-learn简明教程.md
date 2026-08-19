@@ -1,5 +1,5 @@
 ---
-id: T24
+id: T31
 title: scikit-learn简明教程
 series: 在线资源
 tier: 技术文档
@@ -13,7 +13,7 @@ paywall: vip-partial
 
 **scikit-learn**（sklearn）是 Python 里最常用的**经典机器学习库**：回归、分类、聚类、降维、模型选择与流水线，API 统一、文档成熟。在分子模拟中，常用它处理**从轨迹或结构提取的特征**（RDF 峰位、RMSD 统计量、描述符等），做相态分类、性质预测或构象聚类。
 
-本文结合分子模拟场景介绍 sklearn 核心用法；环境使用 **`myenv-ml`**（见 [机器学习与分子模拟导引](T30-机器学习与分子模拟导引.md)）；特征来源见 [MDAnalysis轨迹分析入门](T22-MDAnalysis轨迹分析入门.md)、[ASE结构构建入门](T23-ASE结构构建入门.md)。
+本文结合分子模拟场景介绍 sklearn 核心用法；环境使用 **`myenv-ml`**（见 [机器学习与分子模拟导引](T30-机器学习与分子模拟导引.md)）；特征来源见 [MDAnalysis轨迹分析入门](T22-MDAnalysis轨迹分析入门.md)；结构侧优先 [MDStudio](https://mdstudio.molsimulx.com)，复杂几何见 [ASE结构构建入门](T23-ASE结构构建入门.md)。
 
 ---
 
@@ -168,7 +168,7 @@ import pandas as pd
 pd.Series(rf.feature_importances_, index=feature_names).sort_values(ascending=False)
 ```
 
-出图见 [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md)。
+出图见 [Python科学计算简明教程](T21-Python科学计算简明教程.md)。
 
 ---
 
@@ -283,7 +283,7 @@ loaded.predict(X_test[:3])
 | RDF 峰位/峰高 | [MDAnalysis](T22-MDAnalysis轨迹分析入门.md) `InterRDF` |
 | RMSD 均值/方差 | `RMSD` 分析 |
 | 回转半径 | `AtomGroup.radius_of_gyration()` |
-| 元素计数、键长统计 | [ASE](T23-ASE结构构建入门.md) |
+| 元素计数、键长统计 | [ASE结构构建入门](T23-ASE结构构建入门.md)（复杂几何）；日常结构自 MDStudio 导出 |
 | 分子指纹 | RDKit（描述符教程，待写） |
 
 将多条模拟结果汇总为一张 `features.csv`，每行 `sample_id` 唯一，再 `pd.read_csv` → `X, y`。
@@ -311,7 +311,7 @@ loaded.predict(X_test[:3])
 | 表格特征、样本量中小 | 大数据、神经网络、GNN、ML 势 |
 | 快速基线 | 需自定义损失与架构 |
 
-见 [PyTorch简明教程](T25-PyTorch简明教程.md)。
+见 [PyTorch简明教程](T32-PyTorch简明教程.md)。
 
 ---
 
@@ -346,11 +346,11 @@ loaded.predict(X_test[:3])
 **前置阅读：**
 
 - [机器学习与分子模拟导引](T30-机器学习与分子模拟导引.md)（`myenv-ml`）
-- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md)
-- [MDAnalysis轨迹分析入门](T22-MDAnalysis轨迹分析入门.md) 或 [ASE结构构建入门](T23-ASE结构构建入门.md)
+- [Python科学计算简明教程](T21-Python科学计算简明教程.md)
+- [MDAnalysis轨迹分析入门](T22-MDAnalysis轨迹分析入门.md)；结构默认 [MDStudio](https://mdstudio.molsimulx.com)，复杂几何见 [ASE结构构建入门](T23-ASE结构构建入门.md)
 
 **下一步：**
 
-- [PyTorch简明教程](T25-PyTorch简明教程.md)
+- [PyTorch简明教程](T32-PyTorch简明教程.md)
 - 待写：构象降维与聚类、分子描述符与特征工程
 - `实战案例` —— 性质预测 / 相态分类案例

@@ -14,7 +14,7 @@ erphpdown_blocks: 1
 
 论文里的公式要对齐、图要编号、参考文献改一处全文跟着变——用 Word 硬调常常越改越乱。**LaTeX** 像一台「排版发动机」：你写带标记的纯文本，编译器吐出版式稳定的 PDF。**Overleaf** 把这套流程搬到浏览器里，不用本机装几个 G 的 TeX，还能和导师在线改稿。
 
-日常记实验、攒素材仍用 [Markdown简明教程](T12-Markdown简明教程.md)、[Obsidian知识库搭建](T13-Obsidian知识库搭建.md)；**成稿、投稿、答辩幻灯**再进 LaTeX。图从 [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md) 导出 PDF 插进来即可。
+日常记实验、攒素材仍用 [Markdown简明教程](T12-Markdown简明教程.md)、[Obsidian知识库搭建](T13-Obsidian知识库搭建.md)；**成稿、投稿、答辩幻灯**再进 LaTeX。图从 [Python科学计算简明教程](T21-Python科学计算简明教程.md) 导出 PDF 插进来即可。
 
 学完能带走：Overleaf 上从空白项目到能编译的论文骨架、常用公式环境和插图插入、`refs.bib` 参考文献怎么挂、以及和导师在线改稿时要注意啥。整条「模拟 → 出图 → 排版」链路见 [从模拟到论文图的工作流](T18-从模拟到论文图的工作流.md)；记方法与参数仍留在 Markdown / Obsidian，别一上来就把实验笔记搬进 `.tex`。
 
@@ -380,7 +380,7 @@ plt.savefig("figures/rdf.pdf", bbox_inches="tight")
 \end{figure}
 ```
 
-图注里写清：体系、温度、力场、轨迹长度。作图规范见 [从模拟到论文图的工作流](T18-从模拟到论文图的工作流.md)、[NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md)。
+图注里写清：体系、温度、力场、轨迹长度。作图规范见 [从模拟到论文图的工作流](T18-从模拟到论文图的工作流.md)、[Python科学计算简明教程](T21-Python科学计算简明教程.md)。
 
 ---
 
@@ -555,12 +555,12 @@ Overleaf 会自动多遍编译；本地报错时看 `.log` 最后几十行。**�
 **前置阅读：**
 
 - [Markdown简明教程](T12-Markdown简明教程.md)
-- [NumPy与Matplotlib简明教程](T21-NumPy与Matplotlib简明教程.md) —— 导出论文级图片
+- [Python科学计算简明教程](T21-Python科学计算简明教程.md) —— 导出论文级图片
 - [Obsidian知识库搭建](T13-Obsidian知识库搭建.md) —— 写作素材积累
 
 **下一步：**
 
-- 在 Overleaf 选目标期刊模板，练一篇短 Methods + 一图一文
 - [从模拟到论文图的工作流](T18-从模拟到论文图的工作流.md)
 - [科研项目目录结构规范](T15-科研项目目录结构规范.md) —— `figures/`、`docs/` 怎么摆
+- [VMD安装与高端渲染简明教程](T26-VMD安装与高端渲染简明教程.md) —— 三维刊用图
 - `02-实战案例` —— 把模拟结果整理成图表与文字（陆续更新）

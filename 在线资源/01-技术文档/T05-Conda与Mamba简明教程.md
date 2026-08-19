@@ -474,3 +474,5 @@ conda activate myenv
 
 - [JupyterLab简明教程](T11-JupyterLab简明教程.md)
 - [VSCode与Cursor简明教程](T06-VSCode与Cursor简明教程.md) —— 选择解释器
+- [Python科学计算简明教程](T21-Python科学计算简明教程.md) —— `myenv` 里的 NumPy / pandas / 出图
+- [机器学习与分子模拟导引](T30-机器学习与分子模拟导引.md) —— 另开 ML 环境时再读
