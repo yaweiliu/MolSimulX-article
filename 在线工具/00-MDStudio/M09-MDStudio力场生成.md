@@ -7,8 +7,7 @@ series: 在线工具
 tier: MDStudio
 status: reviewed
 topic: MDStudio
-paywall: vip
-erphpdown_blocks: 1
+paywall: free
 ---
 > **系列标签：** `MDStudio` · `力场生成` · `GAFF` · 电荷
 
@@ -21,8 +20,6 @@ erphpdown_blocks: 1
 ![](../../images/articles/在线工具/M09-MDStudio力场生成/web/M09-hero-force_field.webp)
 
 ---
-
-[erphpdown]
 
 ## 一、整体功能与数据流
 
@@ -935,8 +932,6 @@ run_cp2k.sh
 7. `.ff` 可按第八节列布局手改电荷、LJ、键角二面角；format 2 电荷在 `CHARGES`，键连按 `ff_type` 匹配。
 8. 生成后应检查 `_ff.mol2`、3D 结构，以及 `.ff` 中的 `[guess]` / `[UFF fallback]`，再进入结构变换或装盒。
 9. AM1-BCC 50 / RESP 10 原子以上转远端脚本；拓扑上限为 6000 / 30000 / 50000 / 20000，`msxff` 墙钟 300 秒，队列为 3 / 1 / 20。
-
-[/erphpdown]
 
 ---
 

@@ -7,8 +7,7 @@ series: 在线工具
 tier: MDStudio
 status: reviewed
 topic: MDStudio
-paywall: vip
-erphpdown_blocks: 1
+paywall: free
 ---
 > **系列标签：** `MDStudio` · `Ketcher` · `绘制` · `孤立分子`
 
@@ -21,8 +20,6 @@ erphpdown_blocks: 1
 ![](../../images/articles/在线工具/M06-MDStudio孤立分子/web/M06-hero-isolated_molecule.webp)
 
 ---
-
-[erphpdown]
 
 ## 一、整体功能与数据流
 
@@ -130,8 +127,6 @@ Ketcher 画板（2D 结构）
 4. 本 Tab 只从画板读 SMILES；要输入 SMILES/InChI 建结构请用力场生成 Tab。
 5. 本 Tab 免费、同步执行且不入队；保存仍受每目录 50 项与工作区配额约束。
 6. 下一步几乎总是力场生成，「用于生成力场」按钮可一键跳转。
-
-[/erphpdown]
 
 ---
 

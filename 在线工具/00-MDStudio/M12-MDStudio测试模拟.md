@@ -7,8 +7,7 @@ series: 在线工具
 tier: MDStudio
 status: reviewed
 topic: MDStudio
-paywall: vip
-erphpdown_blocks: 1
+paywall: free
 ---
 > **系列标签：** `MDStudio` · `测试模拟` · `Lammps` · 冒烟测试
 
@@ -21,8 +20,6 @@ erphpdown_blocks: 1
 ![](../../images/articles/在线工具/M12-MDStudio测试模拟/web/M12-hero-simtest.webp)
 
 ---
-
-[erphpdown]
 
 ## 一、整体功能与数据流
 
@@ -175,8 +172,6 @@ erphpdown_blocks: 1
 3. `in.test.lmp` 去 kspace、长程 pair 换截断、只跑 minimize→NVE→NVT，自洽且可独立启动。
 4. 源文件更新后 `in.test.lmp` 会「过期」，需重新生成。
 5. 原子数上限 **5000**、墙钟 **300** 秒；超时是中止不是成功。生产采样请下载后离线跑。
-
-[/erphpdown]
 
 ---
 

@@ -7,8 +7,7 @@ series: 在线工具
 tier: MDStudio
 status: reviewed
 topic: MDStudio
-paywall: vip
-erphpdown_blocks: 1
+paywall: free
 ---
 > **系列标签：** `MDStudio` · `搭建盒子` · `Packmol` · `Lammps`
 
@@ -21,8 +20,6 @@ erphpdown_blocks: 1
 ![](../../images/articles/在线工具/M11-MDStudio搭建盒子/web/M11-hero-simbox.webp)
 
 ---
-
-[erphpdown]
 
 ## 一、整体功能与数据流
 
@@ -377,8 +374,6 @@ fix myshake all shake 0.0001 20 0 b <bond types> a <angle types>
 5. ① 不查盒子原子数；② 按免费 1000 / VIP 100000 检查；③ 硬顶为其 2 倍（免费 2000 / VIP 200000）并检查 `.ff` 拓扑。
 6. 三阶段墙钟为 60 / 300 / 60 秒，队列并发为 3 / 1 / 20。
 7. 默认 `in.lmp` 用于打通与冒烟；生产长跑请下载后离线跑。
-
-[/erphpdown]
 
 ---
 
